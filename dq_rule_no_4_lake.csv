@@ -12,7 +12,7 @@ on b.contract_id=d.contract_id) pr on    sa.patient_id=pr.lh_pat_id  join com_us
 102,product_count,com_us_lake,udef_ic_order_adjustments,id,"with tmp (select max(abs((cur_cnt-prv_cnt)/metric*100)) as metric from ((select count(1) as cur_cnt, pr.channel_name as product from com_us_lake.udef_ic_order_adjustments sa join  (select   d.channel_name,prod_id
  from 
 com_us_lake.dagg_bax_dispense_file a
---WHERE aud_row_status_ind='0')
+
 left join 
 (select distinct lh_pharmacy_name,contract_id from com_us_lake.contract_xwalk) b on a.pharmacy_name=b.lh_pharmacy_name
 left join 
