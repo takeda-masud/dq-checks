@@ -2,7 +2,7 @@ dq_check_id,Check,Database_name,table_name,primary_key_cols,sql_fr_run,priority,
 101,product_count,com_us_lake,dagg_cdit_redist,row_id,"with tmp (select max(abs((cur_cnt-prv_cnt)/metric*100)) as metric from ((select count(1) as cur_cnt, pr.channel_name as product from com_us_lake.dagg_cdit_redist sa join (select   d.channel_name,a.lh_pat_id
  from 
 com_us_lake.dagg_bax_dispense_file a
---WHERE aud_row_status_ind='0')
+
 left join 
 (select distinct lh_pharmacy_name,contract_id from com_us_lake.contract_xwalk) b on a.pharmacy_name=b.lh_pharmacy_name
 left join 
