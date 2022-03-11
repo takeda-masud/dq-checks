@@ -54,29 +54,8 @@ left join
 (select distinct  omni_id,cust_profile_key from com_us_hub.ref_cust_profile where scd_curr_ind='Y') f on  a.src_id=f.omni_id
  ) sa
 
- join com_us_lake.hem_affiliation_table pr on sa.id = pr.Shire_ID_End_Customer where sa.gl_date between (select min(period_start_date) from com_us_lake.dq_count_table where dq_rule = 'dq_rule_6' and table_name = 'com_us_lake.hem_affiliation_table')  and (select max(period_end_date) from com_us_lake.dq_count_table where dq_rule = 'dq_rule_6' and table_name = 'com_us_lake.hem_affiliation_table')  group by pr.Name_of_Account_End_Customer) cur cross join (select prv_count as prv_cnt,metric, sub_field_name
- as product from com_us_lake.dq_count_table where dq_rule = 'dq_rule_6' and table_name = 'com_us_lake.hem_affiliation_table') prv on cur.product=prv.product)) select * from tmp	
-		 
-	--------------------   
-with tmp (select max(abs((cur_cnt-prv_cnt)/metric*100)) as metric from ((select count(1) as cur_cnt,pr.Name_of_Account_End_Customer as product from 
-   (SELECT 
-CAST(case when source=""BD"" THEN ship_to_org_id ELSE prescriber_id END AS VARCHAR(50))  as  end_cust_mstr_id,
-product_name as src_prod_id,gl_date  FROM com_us_lake.dagg_cdit_redist  WHERE  aud_row_stat_ind='0' 
- union 
- select  CAST(case when source=""BD"" THEN ship_to_org_id ELSE prescriber_id END AS VARCHAR(50))  as  end_cust_mstr_id,
-product_name as src_prod_id,gl_date as gl_d  FROM com_us_lake.cnp_bd_cbk_sls 
- WHERE  aud_row_stat_ind='0'  ) sa 
- join com_us_lake.hem_affiliation_table pr on sa.end_cust_mstr_id = pr.Shire_ID_End_Customer where sa.gl_date between (select min(period_start_date) from com_us_lake.dq_count_table where dq_rule = 'dq_rule_6' and table_name = 'com_us_lake.hem_affiliation_table')  and (select max(period_end_date) from com_us_lake.dq_count_table where dq_rule = 'dq_rule_6' and table_name = 'com_us_lake.hem_affiliation_table')  group by pr.Name_of_Account_End_Customer) cur cross join (select prv_count as prv_cnt,metric, sub_field_name
- as product from com_us_lake.dq_count_table where dq_rule = 'dq_rule_6' and table_name = 'com_us_lake.hem_affiliation_table') prv on cur.product=prv.product)) select * from tmp	
-
-====
-insert into com_us_lake.dq_count_table
-select 'dq_rule_6','lake','com_us_lake.hem_affiliation_table','Product',product,count,metric,trunc(add_months(current_date,-26),'mm'),date_add(trunc(add_months(current_date,-2),'mm'),-1),current_date,'Daily' from (select sum(cnt) as count,round(avg(cnt),2) as metric,Name_of_Account_End_Customer as product from (select count(1) as cnt,pr.Name_of_Account_End_Customer from
-
- (SELECT 
-CAST(case when source=""BD"" THEN ship_to_org_id ELSE prescriber_id END AS VARCHAR(50))  as  end_cust_mstr_id,
-product_name as src_prod_id,gl_date  FROM com_us_lake.dagg_cdit_redist  WHERE  aud_row_stat_ind='0' 
+ join com_us_lake.hem_affiliation_table pr on sa.id = pr.Shire_ID_End_Customer where sa.gl_date between (select min(period_start_date) from com_us_lake.dq_count_table where dq_rule = 'dq_rule_6' and table_name = 'com_us_lake.hem_affiliation_table')  and (select max(period_end_date) from com_us_lake.dq_count_table where dq_rule = 'dq_rule_6' and table_name = 'BPRI_BillingExtract_bpri-salesordertransactions-hem_affiliation_table')  group by pr.Name_of_Account_End_Customer) cur cross join (select prv_count as prv_cnt,metric, sub_field_name
+ as product from com_us_lake.dq_count_table where dq_rule = 'dq_rule_6' and table_name = 'BPRI_BillingExtract-bpri-salesordertransactions_hem_affiliation_table') prv on cur.product=prv.product))
  
-)  sa
- join com_us_lake.hem_affiliation_table pr on sa.end_cust_mstr_id = pr.Shire_ID_End_Customer where sa.gl_date between trunc(add_months(current_date,-26),'mm') and date_add(trunc(add_months(current_date,-2),'mm'),-1)  group by pr.Name_of_Account_End_Customer, extract(month from sa.gl_date), extract(year from sa.gl_date)) group by Name_of_Account_End_Customer);",P1,10,3
+ select * from tmp	",P1,10,3
 final_check,final_check,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","Select case when metric > threshold then 1 else 0 end as res from dq_output_table where entity_id in (101,102,103)",P1,0,4
