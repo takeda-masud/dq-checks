@@ -112,9 +112,8 @@ dq_20311,Blank_prod_desc,com_us_lake,dagg_cdit_redist,prod_nm,"
 
 with  dagg_cdit_redist as 
 (select product_name,contract_id,parent_customer from  com_us_lake.dagg_cdit_redist    WHERE  aud_row_stat_ind='0'
-union 
- select product_name,contract_id,parent_customer FROM com_us_lake.cnp_bd_cbk_sls 
- WHERE  aud_row_stat_ind='0')
+--union  select product_name,contract_id,parent_customer FROM com_us_lake.cnp_bd_cbk_sls  WHERE  aud_row_stat_ind='0'
+ )
  ,
  tmp as
 (select count(prod_nm) 
@@ -139,7 +138,7 @@ on a.product_name=prd.prod_id
  AND   NULLIF(TRIM( prd.prod_nm), '')    is null
  )	
  select * from tmp",P1,0,7
-dq_20311,Blank_prod_desc,com_us_lake,bpri_salesordertransactions,prod_nm,"with prd  as
+dq_20312,Blank_prod_desc,com_us_lake,bpri_salesordertransactions,prod_nm,"with prd  as
 (select * from  com_us_hub.ref_prd_prod),
 bpri_salesordertransactions as
 (
@@ -230,12 +229,11 @@ and NULLIF(TRIM( prod_nm), '')  is null
     )
     
     select count(1) from tmp",P1,0,8
-prod_desc_final_check,customer_count,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM",select case when metric > threshold then 1 else 0 end as res from corp_us_lake.dq_output_table where entity_id in ('dq_20311'),P1,0,9
+prod_desc_final_check,customer_count,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from corp_us_lake.dq_output_table where entity_id in ('dq_20311','dq_20312')",P1,0,9
 dq_20411,Blank_channel_nm,com_us_lake,dagg_cdit_redist,row_id,"with dagg_cdit_redist as 
 (select product_name,contract_id,parent_customer,aud_row_stat_ind from  com_us_lake.dagg_cdit_redist    WHERE  aud_row_stat_ind='0'
-union 
- select product_name,contract_id,parent_customer,aud_row_stat_ind FROM com_us_lake.cnp_bd_cbk_sls 
- WHERE  aud_row_stat_ind='0') ,
+--union  select product_name,contract_id,parent_customer,aud_row_stat_ind FROM com_us_lake.cnp_bd_cbk_sls WHERE  aud_row_stat_ind='0'
+ ) ,
  
  tmp as (
  select COALESCE(b.channel_name,c.channel_name,d.channel_name) channel_name ,
@@ -335,9 +333,8 @@ and NULLIF(TRIM( channel_name), '')  is null
 channel_nm_final_check,unit_count,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from corp_us_lake.dq_output_table where entity_id in ('dq_20411','dq_20412')",P1,0,12
 dq_20511,Blank_channel_nm,com_us_lake,dagg_cdit_redist,row_id,"with dagg_cdit_redist as 
 (select product_name,contract_id,parent_customer,aud_row_stat_ind from  com_us_lake.dagg_cdit_redist    WHERE  aud_row_stat_ind='0'
-union 
- select product_name,contract_id,parent_customer,aud_row_stat_ind FROM com_us_lake.cnp_bd_cbk_sls 
- WHERE  aud_row_stat_ind='0') ,
+--union  select product_name,contract_id,parent_customer,aud_row_stat_ind FROM com_us_lake.cnp_bd_cbk_sls  WHERE  aud_row_stat_ind='0'
+ ) ,
  
  tmp as (
  select COALESCE(b.channel_name,c.channel_name,d.channel_name) channel_name ,
@@ -355,8 +352,7 @@ union
      
    )
    
-   select count(channel_name ) from tmp where  channel_type = 'SPP'  and  NULLIF(TRIM( channel_name), '') is null
-   ",P1,0,13
+   select count(channel_name ) from tmp where  channel_type = 'SPP'  and  NULLIF(TRIM( channel_name), '') is null",P1,0,13
 dq_20512,Blank_channel_nm,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as  (select  channel_type,channel_name from (			SELECT 
 
 bpri_customermasterdata.customer Bill_To_Cust_NM    	
@@ -434,20 +430,21 @@ and NULLIF(TRIM( channel_name), '')  is null
     )
     
     select count(1) from tmp",P1,0,14
-channel_nm_final_check,unit_count,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from corp_us_lake.dq_output_table where entity_id in ('dq_20411','dq_20412')",P1,0,15
+channel_nm_final_check,unit_count,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from corp_us_lake.dq_output_table where entity_id in ('dq_20511','dq_20512')",P1,0,15
 dq_20511,Blank_End_Customer,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
 (select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer  from 
 com_us_lake.dagg_cdit_redist a where    aud_row_stat_ind='0'
-union
- select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer FROM com_us_lake.cnp_bd_cbk_sls 
- WHERE  aud_row_stat_ind='0') ,
+--union select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer FROM com_us_lake.cnp_bd_cbk_sls  WHERE  aud_row_stat_ind='0'
+) ,
 --select * from dagg_cdit_redist
 ref_cust_profile as 
 ( select  *  from com_us_hub.ref_cust_profile ),
 udef_na_hierarchy as
-( select channel_type,flex_cust_number,contract_id from com_us_lake.udef_na_hierarchy  group by channel_type,flex_cust_number,contract_id)
+( select channel_type,flex_cust_number,contract_id from com_us_lake.udef_na_hierarchy  group by channel_type,flex_cust_number,contract_id),
   
 --select * from udef_na_hierarchy
+tmp as 
+(
 select     
   
 COALESCE(b.channel_type,c.channel_type,d.channel_type) channel_type 
@@ -468,25 +465,26 @@ from  dagg_cdit_redist a
   
   (select  omni_id  from ref_cust_profile where scd_curr_ind='Y' group by omni_id) cust_profile
    
-  on CAST(case when a.source=""BD"" THEN a.ship_to_org_id ELSE prescriber_id END AS VARCHAR(50))= cust_profile.omni_id 
+  on CAST(case when a.source='BD' THEN a.ship_to_org_id ELSE prescriber_id END AS VARCHAR(50))= cust_profile.omni_id 
   
   left join 
   
   (select a.omni_id,a.src_id  from com_us_hub.ref_cust_xref a
 left join  com_us_lake.feed_lkp b on upper(a.src_system)=upper(b.src_system) where b.src is not null and b.src='LH' group by  a.omni_id,a.src_id  )  xref
 
-on    CAST(case when a.source=""BD"" THEN a.ship_to_org_id ELSE prescriber_id END AS VARCHAR(50))= xref.src_id
+on    CAST(case when a.source='BD' THEN a.ship_to_org_id ELSE prescriber_id END AS VARCHAR(50))= xref.src_id
 
 left join
 
 (select a.omni_id,ltrim('0',a.src_id) as src_id from com_us_hub.ref_cust_xref a
 left join  com_us_lake.feed_lkp b on upper(a.src_system)=upper(b.src_system) where b.src is not null  and b.src='LH'  group by a.omni_id,ltrim('0',a.src_id) )  cust_xref
-on cust_xref.src_id= CAST(case when a.source=""BD"" THEN a.ship_to_org_id ELSE prescriber_id END AS VARCHAR(50))
+on cust_xref.src_id= CAST(case when a.source='BD' THEN a.ship_to_org_id ELSE prescriber_id END AS VARCHAR(50))
 
   
 join com_us_lake.hem_affiliation_table pr on COALESCE(cust_profile.omni_id ,xref.src_id,cust_xref.src_id ) = pr.Shire_ID_End_Customer
 
-where pr.Name_of_Account_End_Customer is null  and   COALESCE(b.channel_type,c.channel_type,d.channel_type) ='SPP'",P1,0,16
+where pr.Name_of_Account_End_Customer is null  and   COALESCE(b.channel_type,c.channel_type,d.channel_type) ='SPP')
+select count(1) from tmp",P1,0,16
 dq_20512,Blank_End_Customer,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as  (select  channel_type,channel_name from (			SELECT 
 
 bpri_customermasterdata.customer Bill_To_Cust_NM    	
