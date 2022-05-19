@@ -11,7 +11,7 @@ dq_20531,Blank_chnl_nm,com_us_mart_03,ref_affiliated_account,dir_redist_sls_key,
 chnl_nm_blank_final_check,chnl_nm_blank,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM",select case when metric > threshold then 1 else 0 end as res from corp_us_lake.dq_output_table where entity_id in ('dq_20531'),P1,0,10
 dq_20631,Blank_contract_id,com_us_mart_03,ref_affiliated_account,dir_redist_sls_key,with tmp ( select count(1) as cur_cnt from  com_us_mart_03.ref_cntrct_prcing  a left join   com_us_mart_03.txn_dir_redist_sls b  on a.cntrct_prcing_key= b.pricing_contract_key     where  chnl_typ  ='SPP'  and   a.contract_id is null)  select * from tmp,P1,0,11
 Blank_contract_id_final_check,contract_id_count,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM",select case when metric > threshold then 1 else 0 end as res from corp_us_lake.dq_output_table where entity_id in ('dq_20631'),P1,0,12
-dq_20131,Dates_missing,com_us_mart_03,txn_dir_redist_sls,dir_redist_sls_key,"with tmp (
+dq_20731,Dates_missing,com_us_mart_03,txn_dir_redist_sls,dir_redist_sls_key,"with tmp (
 select (select   count(distinct actual_date)  from com_us_hub.ref_cal 
 where   ( actual_date between  (to_Date(add_months(trunc(current_date, 'MM') , -48),'MM/DD/YYYY')) and  date_add(to_Date(trunc(current_date, 'MM') ,'MM/DD/YYYY'),-1)) and dayofweek(actual_date)  not in(1,7) )-
 (select  count(distinct gl_date) from com_us_mart_03.txn_dir_redist_sls
