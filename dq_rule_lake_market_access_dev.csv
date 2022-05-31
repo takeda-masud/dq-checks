@@ -693,7 +693,7 @@ and dayofweek(to_date(gl_date,'dd/MM/yyyy') )  not  in(1,7) )
 )
 select * from  tmp",P1,0,121
 Date_missing_final_check,Date_missing,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from corp_us_lake.dq_output_table where entity_id in ('dq_20711','dq_20712','dq_20713')",P1,0,122
-dq_20812,Blank_End_cust_nm,com_us_lake,bpri_salesordertransactions,doc_number,"with BPRI_BillingExtract as
+dq_20811,Blank_End_cust_nm,com_us_lake,bpri_salesordertransactions,doc_number,"with BPRI_BillingExtract as
 
 (select * from  com_us_lake.BPRI_BillingExtract  where   to_date(BPRI_BillingExtract.Billing_doc__date, 'MM/dd/yy') >to_Date(add_months(current_date , -48),'MM/DD/YYYY'))
 ,
@@ -745,3 +745,36 @@ dq_20812,Blank_End_cust_nm,com_us_lake,bpri_salesordertransactions,doc_number,"w
 
 (select * from  com_us_lake.BPRI_BillingExtract  where   to_date(BPRI_BillingExtract.Billing_doc__date, 'MM/dd/yy') >to_Date(add_months(current_date , -48),'MM/DD/YYYY'))
 select count(*) from tmp",P1,0,124
+dq_20813,Blank_End_cust_nm,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as(
+
+SELECT 
+count(*)
+FROM com_us_lake.BPRI_BillingExtract BPRI_BillingExtract
+INNER JOIN com_us_lake.bpri_salesordertransactions
+
+         ON (
+         regexp_replace(bpri_salesordertransactions.doc_number,'^0+(?!$)','') = regexp_replace(BPRI_BillingExtract.Sales_document,'^0+(?!$)','') 
+         AND regexp_replace(bpri_salesordertransactions.s_ord_item,'^0+(?!$)','') =  regexp_replace(BPRI_BillingExtract.Sales_doc_Item,'^0+(?!$)','')
+             )          
+          INNER JOIN
+com_us_lake.bpri_materialmasterdata
+          ON (    
+bpri_salesordertransactions.material=bpri_materialmasterdata.material
+                     AND bpri_materialmasterdata.logsys in('PRDCLNT100')
+		    AND bpri_materialmasterdata.MATL_TYPE in ('FINI','TRAD')
+            ) 
+            left join
+         com_us_lake.udef_na_hierarchy   
+         on sap_cust_number=trim(LEADING '0' FROM BPRI_BillingExtract.Sold_to_party)   
+         
+         left join 
+      
+        (SELECT 
+regexp_replace(udef_ndc_hier.product_code,'^0+(?!$)','') as prod_cod,
+udef_ndc_hier.reporting_group FROM com_us_lake.udef_ndc_hier WHERE (udef_ndc_hier.aud_row_status_ind='0')  )
+on prod_cod=regexp_replace(BPRI_BillingExtract.MATERIAL,'^0+','') 
+          where channel_type='SPP'
+          
+          and regexp_replace(BPRI_BillingExtract.MATERIAL,'^0+','')  is  null )
+          select * from tmp
+",P1,0,125
