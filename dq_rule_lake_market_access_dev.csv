@@ -695,7 +695,7 @@ select * from  tmp",P1,0,121
 Date_missing_final_check,Date_missing,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from corp_us_lake.dq_output_table where entity_id in ('dq_20711','dq_20712','dq_20713')",P1,0,122
 dq_20812,Blank_End_cust_nm,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as
 (select 
-Billing_doc__date
+count(Billing_doc__date)
 
 from 
 (SELECT 
@@ -738,28 +738,15 @@ AND bpri_customermasterdata.logsys in('PRDCLNT100')
 
 where channel_type='SPP'  and to_date(BPRI_BillingExtract.Billing_doc__date, 'MM/dd/yy') >to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
 )
-sa
-left join 
-com_us_Lake.jde_bpri_sap_cust_num_xref xref on  xref.Takeda_customer_id = sa.end_cust_num
--- join com_us_lake.hem_affiliation_table pr on sa.end_cust_mstr_id = pr.Shire_ID_End_Customer
- left join com_us_lake.jde_sap_cust_num_xref xref1  on xref.sap_cust_num=xref1.sap_cust_num
- 
-
- left join 
+sa left join 
  (select   omni_id from com_us_hub.ref_cust_profile where scd_curr_ind='Y'  group by omni_id) cus_pr 
 on   cus_pr.omni_id =sa.end_cust_num
-
-
 left join 
 (select a.omni_id xref_omni_id ,a.cust_profile_key,a.src_id,upper(b.src) as feed,upper(a.src_system) as src_system  from com_us_hub.ref_cust_xref a
 left join  com_us_lake.feed_lkp b on upper(a.src_system)=upper(b.src_system) where b.src is not null 
  group by a.omni_id  ,a.cust_profile_key,a.src_id,upper(b.src) ,upper(a.src_system))  cust_xref 
 on  cust_xref.src_id=sa.end_cust_num  and  cust_xref.feed ='SAP'
-
-
- 
  join com_us_lake.hem_affiliation_table pr on COALESCE(cus_pr.omni_id ,cust_xref.xref_omni_id) = pr.Shire_ID_End_Customer
-
 where pr.Name_of_Account_End_Customer  is null)
 
 select * from tmp",P1,0,123
