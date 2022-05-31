@@ -383,19 +383,16 @@ COALESCE(b.channel_type,c.channel_type,d.channel_type) ='SPP'  and  pr.Name_of_A
 
 select count(1) from tmp",P1,0,13
 dq_20512,Blank_End_cust_nm,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as
-(select -- sa.channel_type,pr.Name_of_Account_End_Customer
---COALESCE(cus_pr.omni_id ,cust_xref.xref_omni_id) end_cust_id_sap
-
+(select 
 Billing_doc__date
---xref1.jde_cust_num 
+
 from 
 (SELECT 
  
-BPRI_BillingExtract.Billing_doc__date, channel_type	 , fr_lov.lov_description  lov_description,
+BPRI_BillingExtract.Billing_doc__date, 
 
 trim(LEADING '0' FROM 
-case when  upper(fr_lov.lov_description ) ='ONCOLOGY' then  BPRI_BillingExtract.Ship_To_Party else  BPRI_BillingExtract.Sold_to_party  end) end_cust_num ,--  case when  upper(fr_lov.lov_description )='ONCOLOGY' then ship_to_cust_nm else sold_to_cust_nm) end ,	--as end_cust_num,
-regexp_replace(BPRI_BillingExtract.MATERIAL,'^0+','')  prod_id
+case when  upper(fr_lov.lov_description ) ='ONCOLOGY' then  BPRI_BillingExtract.Ship_To_Party else  BPRI_BillingExtract.Sold_to_party  end) end_cust_num 
 FROM com_us_lake.BPRI_BillingExtract BPRI_BillingExtract
 INNER JOIN com_us_lake.bpri_salesordertransactions
 
@@ -454,8 +451,7 @@ on  cust_xref.src_id=sa.end_cust_num  and  cust_xref.feed ='SAP'
 
 where pr.Name_of_Account_End_Customer  is null)
 
-select * from tmp
-",P1,0,14
+select * from tmp",P1,0,14
 Blank_End_cust_nm_check,Blank_End_cust_nm_count,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from corp_us_lake.dq_output_table where entity_id in ('dq_20511','dq_20512')",P1,0,15
 dq_20611,Blank_contract_id,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
 (select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer  from 
@@ -501,8 +497,7 @@ BPRI_BillingExtract as
 
 SELECT   
 case when  instr(comments,'^') > 0 then
-regexp_extract(comments,'^([^\^]+)\.?',1) else comments end  as group_id  ,--=lkp.contract_price_group_id
---and  lkp.prod_key   ,--=p.prd_prod_key 
+regexp_extract(comments,'^([^\^]+)\.?',1) else comments end  as group_id  ,
  to_date(bpri_salesordertransactions.doc_date,'yyyyMMdd') doc_date,p.prd_prod_key,BPRI_BillingExtract.billing_doc__date  GL_DATE
 FROM BPRI_BillingExtract BPRI_BillingExtract
 INNER JOIN bpri_salesordertransactions
@@ -525,8 +520,6 @@ bpri_salesordertransactions.material=bpri_materialmasterdata.material
         ON(regexp_replace(bpri_materialmasterdata.material,'^0+(?!$)','') = regexp_replace(p.prod_id,'^0+(?!$)','')) 
         
         
-
-         -- where channel_type='SPP'
                   where 
     to_date(BPRI_BillingExtract.billing_doc__date,'dd/MM/yyyy') > trunc(add_months(current_date,-48),'mm')  and                
 bpri_salesordertransactions.billtoprty <>'0000336234' 
@@ -545,7 +538,7 @@ regexp_extract(comments,'^([^\^]+)\.?',1) else comments end     ,
        
        (SELECT 
  
-  	-- Coalesce(lkp.contract_id, lkp2.contract_id) ctid,from_unixtime(unix_timestamp(CURRENT_DATE,'YYYY-MM-DD'),'MM/dd/YYYY') GL_DATE
+  	
 case when  instr(comments,'^') > 0 then
 regexp_extract(comments,'^([^\^]+)\.?',1) else comments end   grp_id,
 
@@ -594,7 +587,7 @@ case when  instr(comments,'^') > 0 then
 regexp_extract(comments,'^([^\^]+)\.?',1) else comments end  ,
 
  to_date(bpri_salesordertransactions.doc_date,'yyyyMMdd') ,p.prd_prod_key,from_unixtime(unix_timestamp(CURRENT_DATE,'YYYY-MM-DD'),'MM/dd/YYYY') 
---and NULLIF(TRIM(  Coalesce(lkp.contract_id, lkp2.contract_id)), '')  is null
+
   )
          
         )
