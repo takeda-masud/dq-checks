@@ -736,7 +736,7 @@ com_us_lake.bpri_customermasterdata
 AND bpri_customermasterdata.logsys in('PRDCLNT100')
 
 
-where channel_type='SPP'  and to_date(BPRI_BillingExtract.Billing_doc__date, 'MM/dd/yy') >to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
+where channel_type='SPP'  --and to_date(BPRI_BillingExtract.Billing_doc__date, 'MM/dd/yy') >to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
 )
 sa left join 
  (select   omni_id from com_us_hub.ref_cust_profile where scd_curr_ind='Y'  group by omni_id) cus_pr 
