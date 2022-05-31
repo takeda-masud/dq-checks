@@ -395,30 +395,30 @@ BPRI_BillingExtract.Billing_doc__date, channel_type	 , fr_lov.lov_description  l
 
 trim(LEADING '0' FROM 
 case when  upper(fr_lov.lov_description ) ='ONCOLOGY' then  BPRI_BillingExtract.Ship_To_Party else  BPRI_BillingExtract.Sold_to_party  end) end_cust_num ,--  case when  upper(fr_lov.lov_description )='ONCOLOGY' then ship_to_cust_nm else sold_to_cust_nm) end ,	--as end_cust_num,
-regexp_replace(BPRI_BillingExtract.MATERIAL,""^0+"","""")  prod_id
+regexp_replace(BPRI_BillingExtract.MATERIAL,'^0+','')  prod_id
 FROM com_us_lake.BPRI_BillingExtract BPRI_BillingExtract
 INNER JOIN com_us_lake.bpri_salesordertransactions
 
          ON (
-         regexp_replace(bpri_salesordertransactions.doc_number,""^0+(?!$)"","""") = regexp_replace(BPRI_BillingExtract.Sales_document,""^0+(?!$)"","""") 
-         AND regexp_replace(bpri_salesordertransactions.s_ord_item,""^0+(?!$)"","""") =  regexp_replace(BPRI_BillingExtract.Sales_doc_Item,""^0+(?!$)"","""")
+         regexp_replace(bpri_salesordertransactions.doc_number,'^0+(?!$)','') = regexp_replace(BPRI_BillingExtract.Sales_document,'^0+(?!$)','') 
+         AND regexp_replace(bpri_salesordertransactions.s_ord_item,'^0+(?!$)','') =  regexp_replace(BPRI_BillingExtract.Sales_doc_Item,'^0+(?!$)','')
              )          
           INNER JOIN
 com_us_lake.bpri_materialmasterdata
           ON (    
 bpri_salesordertransactions.material=bpri_materialmasterdata.material
                      AND bpri_materialmasterdata.logsys in('PRDCLNT100')
-		    AND bpri_materialmasterdata.MATL_TYPE in (""FINI"",'TRAD')
+		    AND bpri_materialmasterdata.MATL_TYPE in ('FINI','TRAD')
             ) 
             left join
-         com_us_lake.udef_na_hierarchy   
+       (select sap_cust_number,channel_type  from  com_us_lake.udef_na_hierarchy  group by  sap_cust_number,channel_type   ) 
          on sap_cust_number=trim(LEADING '0' FROM BPRI_BillingExtract.Sold_to_party)   
          
          left join 
       
                         com_us_lake.man_lov fr_lov
-          ON ( regexp_replace(bpri_salesordertransactions.material,""^0+(?!$)"","""") = regexp_replace(fr_lov.LOV_CODE,""^0+(?!$)"","""")    
-               AND fr_lov.ENTITY_TYPE=""all"" AND fr_lov.LOOKUP_FIELD='franchise_nm' AND fr_lov.data_source='SAP'
+          ON ( regexp_replace(bpri_salesordertransactions.material,'^0+(?!$)','') = regexp_replace(fr_lov.LOV_CODE,'^0+(?!$)','')    
+               AND fr_lov.ENTITY_TYPE='all' AND fr_lov.LOOKUP_FIELD='franchise_nm' AND fr_lov.data_source='SAP'
             )
          -- where channel_type='SPP'
 		  
@@ -438,13 +438,14 @@ com_us_Lake.jde_bpri_sap_cust_num_xref xref on  xref.Takeda_customer_id = sa.end
  
 
  left join 
- (select distinct  omni_id from com_us_hub.ref_cust_profile where scd_curr_ind='Y') cus_pr 
+ (select   omni_id from com_us_hub.ref_cust_profile where scd_curr_ind='Y'  group by omni_id) cus_pr 
 on   cus_pr.omni_id =sa.end_cust_num
 
 
 left join 
 (select a.omni_id xref_omni_id ,a.cust_profile_key,a.src_id,upper(b.src) as feed,upper(a.src_system) as src_system  from com_us_hub.ref_cust_xref a
-left join  com_us_lake.feed_lkp b on upper(a.src_system)=upper(b.src_system) where b.src is not null)  cust_xref 
+left join  com_us_lake.feed_lkp b on upper(a.src_system)=upper(b.src_system) where b.src is not null 
+ group by a.omni_id  ,a.cust_profile_key,a.src_id,upper(b.src) ,upper(a.src_system))  cust_xref 
 on  cust_xref.src_id=sa.end_cust_num  and  cust_xref.feed ='SAP'
 
 
@@ -453,9 +454,10 @@ on  cust_xref.src_id=sa.end_cust_num  and  cust_xref.feed ='SAP'
 
 where pr.Name_of_Account_End_Customer  is null)
 
-select * from tmp",P1,0,14
+select * from tmp
+",P1,0,14
 Blank_End_cust_nm_check,Blank_End_cust_nm_count,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from corp_us_lake.dq_output_table where entity_id in ('dq_20511','dq_20512')",P1,0,15
-dq_2011,Blank_contract_id,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
+dq_20611,Blank_contract_id,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
 (select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer  from 
 com_us_lake.dagg_cdit_redist a where    aud_row_stat_ind='0' and  to_date(gl_date,'dd/MM/yyyy') > trunc(add_months(current_date,-48),'mm') 
 --union select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer FROM com_us_lake.cnp_bd_cbk_sls  WHERE  aud_row_stat_ind='0'
@@ -566,7 +568,7 @@ bpri_salesordertransactions.material=bpri_materialmasterdata.material
 		    AND bpri_materialmasterdata.MATL_TYPE in ('FINI','TRAD')
             ) 
             left join
-         com_us_lake.udef_na_hierarchy   
+     (select sap_cust_number,channel_type  from   com_us_lake.udef_na_hierarchy  ) 
          on sap_cust_number=trim(LEADING '0' FROM BPRI_BillingExtract.Sold_to_party)   
          
    		   INNER JOIN 
@@ -613,8 +615,7 @@ and tmp.doc_date=lkp2.master_end_date
 and tmp.doc_date =lkp2.master_end_date
 
  where Coalesce(lkp.contract_id, lkp2.contract_id) is   null
- 
-",P1,0,17
+ ",P1,0,17
 contract_id_final_check,Blank_contract_id,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from corp_us_lake.dq_output_table where entity_id in ('dq_20611','dq_20612')",P1,0,18
 dq_20711,date_missing,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
 (select gl_date from 
@@ -698,4 +699,4 @@ and  date_add(to_Date(trunc(current_date, 'MM') ,'MM/DD/YYYY'),-1)
 and dayofweek(to_date(gl_date,'dd/MM/yyyy') )  not  in(1,7) )
 )
 select * from  tmp",P1,0,21
-contract_id_final_check,Date_missing,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from corp_us_lake.dq_output_table where entity_id in ('dq_20711','dq_20712','dq_20713')",P1,0,22
+Date_missing_final_check,Date_missing,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from corp_us_lake.dq_output_table where entity_id in ('dq_20711','dq_20712','dq_20713')",P1,0,22
