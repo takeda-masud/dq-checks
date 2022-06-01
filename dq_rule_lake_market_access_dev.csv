@@ -824,10 +824,9 @@ count(Billing_doc__date)
 from 
 (SELECT 
  
-BPRI_BillingExtract.Billing_doc__date, 
+BPRI_BillingExtract.Billing_doc__date
 
-trim(LEADING '0' FROM 
-case when  upper(fr_lov.lov_description ) ='ONCOLOGY' then  BPRI_BillingExtract.Ship_To_Party else  BPRI_BillingExtract.Sold_to_party  end) end_cust_num 
+--trim(LEADING '0' FROM case when  upper(fr_lov.lov_description ) ='ONCOLOGY' then  BPRI_BillingExtract.Ship_To_Party else  BPRI_BillingExtract.Sold_to_party  end) end_cust_num 
 FROM com_us_lake.BPRI_BillingExtract BPRI_BillingExtract
 INNER JOIN com_us_lake.bpri_salesordertransactions
 
@@ -844,23 +843,24 @@ bpri_salesordertransactions.material=bpri_materialmasterdata.material
             ) 
             left join
        (select sap_cust_number,channel_type  from  com_us_lake.udef_na_hierarchy  group by  sap_cust_number,channel_type   ) 
-         on sap_cust_number=trim(LEADING '0' FROM BPRI_BillingExtract.Sold_to_party)   
+         on sap_cust_number=trim( BPRI_BillingExtract.Sold_to_party)   
          
-         left join 
+  /*       left join 
       
                         com_us_lake.man_lov fr_lov
           ON ( regexp_replace(bpri_salesordertransactions.material,'^0+(?!$)','') = regexp_replace(fr_lov.LOV_CODE,'^0+(?!$)','')    
                AND fr_lov.ENTITY_TYPE='all' AND fr_lov.LOOKUP_FIELD='franchise_nm' AND fr_lov.data_source='SAP'
             )
-         -- where channel_type='SPP'
+        
 		  
 		   INNER JOIN 
 com_us_lake.bpri_customermasterdata
    on bpri_salesordertransactions.sold_to=bpri_customermasterdata.customer
 AND bpri_customermasterdata.logsys in('PRDCLNT100')
 
+*/
 
-where channel_type='SPP'  and to_date(BPRI_BillingExtract.Billing_doc__date, 'MM/dd/yyyy') >to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
+where channel_type='SPP'  
 ))
 
 select * from tmp",P1,0,124
@@ -871,10 +871,9 @@ count(Billing_doc__date)
 from 
 (SELECT 
  
-BPRI_BillingExtract.Billing_doc__date, 
+BPRI_BillingExtract.Billing_doc__date
 
-trim(LEADING '0' FROM 
-case when  upper(fr_lov.lov_description ) ='ONCOLOGY' then  BPRI_BillingExtract.Ship_To_Party else  BPRI_BillingExtract.Sold_to_party  end) end_cust_num 
+--trim(LEADING '0' FROM case when  upper(fr_lov.lov_description ) ='ONCOLOGY' then  BPRI_BillingExtract.Ship_To_Party else  BPRI_BillingExtract.Sold_to_party  end) end_cust_num 
 FROM com_us_lake.BPRI_BillingExtract BPRI_BillingExtract
 INNER JOIN com_us_lake.bpri_salesordertransactions
 
@@ -891,7 +890,7 @@ bpri_salesordertransactions.material=bpri_materialmasterdata.material
             ) 
             left join
        (select sap_cust_number,channel_type  from  com_us_lake.udef_na_hierarchy  group by  sap_cust_number,channel_type   ) 
-         on sap_cust_number=trim(LEADING '0' FROM BPRI_BillingExtract.Sold_to_party)   
+         on sap_cust_number=trim( BPRI_BillingExtract.Sold_to_party)   
          
          left join 
       
@@ -899,7 +898,7 @@ bpri_salesordertransactions.material=bpri_materialmasterdata.material
           ON ( regexp_replace(bpri_salesordertransactions.material,'^0+(?!$)','') = regexp_replace(fr_lov.LOV_CODE,'^0+(?!$)','')    
                AND fr_lov.ENTITY_TYPE='all' AND fr_lov.LOOKUP_FIELD='franchise_nm' AND fr_lov.data_source='SAP'
             )
-         -- where channel_type='SPP'
+        
 		  
 		   INNER JOIN 
 com_us_lake.bpri_customermasterdata
@@ -907,7 +906,7 @@ com_us_lake.bpri_customermasterdata
 AND bpri_customermasterdata.logsys in('PRDCLNT100')
 
 
-where channel_type='SPP' -- and to_date(BPRI_BillingExtract.Billing_doc__date, 'MM/dd/yyyy') >to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
+where channel_type='SPP'
 ))
 
 select * from tmp",P1,0,125
