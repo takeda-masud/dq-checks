@@ -819,7 +819,7 @@ and tmp.doc_date =lkp2.master_end_date
  ",P1,0,123
 dq_20812,Blank_End_cust_nm,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as
 (select 
-Billing_doc__date
+count(Billing_doc__date)
 
 from 
 (SELECT 
@@ -841,28 +841,31 @@ bpri_salesordertransactions.material=bpri_materialmasterdata.material
                      AND bpri_materialmasterdata.logsys in('PRDCLNT100')
 		    AND bpri_materialmasterdata.MATL_TYPE in ('FINI','TRAD')
             ) 
-            left join
-       (select sap_cust_number,channel_type  from  com_us_lake.udef_na_hierarchy  group by  sap_cust_number,channel_type   ) 
-         on sap_cust_number=trim(LEADING '0' FROM BPRI_BillingExtract.Sold_to_party)   
-         
- /*        left join 
-      
-                        com_us_lake.man_lov fr_lov
-          ON ( regexp_replace(bpri_salesordertransactions.material,'^0+(?!$)','') = regexp_replace(fr_lov.LOV_CODE,'^0+(?!$)','')    
-               AND fr_lov.ENTITY_TYPE='all' AND fr_lov.LOOKUP_FIELD='franchise_nm' AND fr_lov.data_source='SAP'
-            )
-       
+        
 		  
 		   INNER JOIN 
 com_us_lake.bpri_customermasterdata
    on bpri_salesordertransactions.sold_to=bpri_customermasterdata.customer
 AND bpri_customermasterdata.logsys in('PRDCLNT100')
 
-*/
-where channel_type='SPP'  and to_date(BPRI_BillingExtract.Billing_doc__date, 'MM/dd/yy') >to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
+     
+         
+        left join 
+      
+                        com_us_lake.man_lov fr_lov
+          ON ( regexp_replace(bpri_salesordertransactions.material,'^0+(?!$)','') = regexp_replace(fr_lov.LOV_CODE,'^0+(?!$)','')    
+               AND fr_lov.ENTITY_TYPE='all' AND fr_lov.LOOKUP_FIELD='franchise_nm' AND fr_lov.data_source='SAP'
+            )
+       
+left join
+       (select sap_cust_number,channel_type  from  com_us_lake.udef_na_hierarchy  group by  sap_cust_number,channel_type   ) 
+         on sap_cust_number=trim(LEADING '0' FROM BPRI_BillingExtract.Sold_to_party)  
+
+
+where channel_type='SPP'  and to_date(BPRI_BillingExtract.Billing_doc__date, 'MM/dd/yyyy') >to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
 )
 
-
+)
 select * from tmp",P1,0,124
 dq_20813,Blank_End_cust_nm,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as
 (select 
@@ -873,7 +876,7 @@ from
  
 BPRI_BillingExtract.Billing_doc__date
 
---trim(LEADING '0' FROM case when  upper(fr_lov.lov_description ) ='ONCOLOGY' then  BPRI_BillingExtract.Ship_To_Party else  BPRI_BillingExtract.Sold_to_party  end) end_cust_num 
+
 FROM com_us_lake.BPRI_BillingExtract BPRI_BillingExtract
 INNER JOIN com_us_lake.bpri_salesordertransactions
 
@@ -887,10 +890,13 @@ com_us_lake.bpri_materialmasterdata
 bpri_salesordertransactions.material=bpri_materialmasterdata.material
                      AND bpri_materialmasterdata.logsys in('PRDCLNT100')
 		    AND bpri_materialmasterdata.MATL_TYPE in ('FINI','TRAD')
+
             ) 
-            left join
-       (select sap_cust_number,channel_type  from  com_us_lake.udef_na_hierarchy  group by  sap_cust_number,channel_type   ) 
-         on sap_cust_number=trim( BPRI_BillingExtract.Sold_to_party)   
+            		   INNER JOIN 
+com_us_lake.bpri_customermasterdata
+   on bpri_salesordertransactions.sold_to=bpri_customermasterdata.customer
+AND bpri_customermasterdata.logsys in('PRDCLNT100')
+         
          
          left join 
       
@@ -899,11 +905,10 @@ bpri_salesordertransactions.material=bpri_materialmasterdata.material
                AND fr_lov.ENTITY_TYPE='all' AND fr_lov.LOOKUP_FIELD='franchise_nm' AND fr_lov.data_source='SAP'
             )
         
-		  
-		   INNER JOIN 
-com_us_lake.bpri_customermasterdata
-   on bpri_salesordertransactions.sold_to=bpri_customermasterdata.customer
-AND bpri_customermasterdata.logsys in('PRDCLNT100')
+		     left join
+       (select sap_cust_number,channel_type  from  com_us_lake.udef_na_hierarchy  group by  sap_cust_number,channel_type   ) 
+         on sap_cust_number=trim( BPRI_BillingExtract.Sold_to_party)   
+
 
 
 where channel_type='SPP'
