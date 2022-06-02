@@ -711,54 +711,12 @@ inner join
             ) )
 
 select count(*) from tmp",P1,0,124
-dq_20813,Blank_End_cust_nm,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as
-(select 
-count(Billing_doc__date)
-
-from 
-(SELECT 
- 
-BPRI_BillingExtract.Billing_doc__date
-
-
-FROM com_us_lake.BPRI_BillingExtract BPRI_BillingExtract
-INNER JOIN com_us_lake.bpri_salesordertransactions
-
-         ON (
-         regexp_replace(bpri_salesordertransactions.doc_number,'^0+(?!$)','') = regexp_replace(BPRI_BillingExtract.Sales_document,'^0+(?!$)','') 
-         AND regexp_replace(bpri_salesordertransactions.s_ord_item,'^0+(?!$)','') =  regexp_replace(BPRI_BillingExtract.Sales_doc_Item,'^0+(?!$)','')
-             )          
-          INNER JOIN
-com_us_lake.bpri_materialmasterdata
-          ON (    
-bpri_salesordertransactions.material=bpri_materialmasterdata.material
-                     AND bpri_materialmasterdata.logsys in('PRDCLNT100')
-		    AND bpri_materialmasterdata.MATL_TYPE in ('FINI','TRAD')
-
-            ) 
-            		   INNER JOIN 
-com_us_lake.bpri_customermasterdata
-   on bpri_salesordertransactions.sold_to=bpri_customermasterdata.customer
-AND bpri_customermasterdata.logsys in('PRDCLNT100')
-         
-         
-         inner join 
+dq_20813,Blank_End_cust_nm,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as  (select material from com_us_lake.bpri_salesordertransactions 
+inner join 
       
                         com_us_lake.man_lov fr_lov
           ON ( regexp_replace(bpri_salesordertransactions.material,'^0+(?!$)','') = regexp_replace(fr_lov.LOV_CODE,'^0+(?!$)','')    
                AND fr_lov.ENTITY_TYPE='all' AND fr_lov.LOOKUP_FIELD='franchise_nm' AND fr_lov.data_source='SAP'
-            )
-        
-		     left join
-       (select sap_cust_number,channel_type  from  com_us_lake.udef_na_hierarchy  group by  sap_cust_number,channel_type   ) 
-         on sap_cust_number=trim( BPRI_BillingExtract.Sold_to_party)  
-          
-      
-      
+            ) )
 
-
-
-where channel_type='SPP'
-))
-
-select * from tmp",P1,0,125
+select count(*) from tmp",P1,0,125
