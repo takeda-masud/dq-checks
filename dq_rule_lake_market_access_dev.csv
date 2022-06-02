@@ -51,10 +51,12 @@ on prod_cod=regexp_replace(BPRI_BillingExtract.MATERIAL,""^0+"","""")
           and regexp_replace(BPRI_BillingExtract.MATERIAL,""^0+"","""")  is  null )
           select * from tmp",P1,0,102
 prod_id_blank_final_check,prod_id,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from corp_us_lake.dq_output_table where entity_id in ('dq_20111','dq_20112')",P1,0,103
-dq_20211,Blank_Reporting_group,com_us_lake,dagg_cdit_redist,row_id,"
-with  dagg_cdit_redist as
+dq_20211,Blank_Reporting_group,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
 (select contract_id, parent_customer,ndc_code  from 
-com_us_lake.dagg_cdit_redist a where    aud_row_stat_ind='0'  ) ,
+com_us_lake.dagg_cdit_redist a where    aud_row_stat_ind='0'  and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
+union 
+select contract_id, parent_customer,ndc_code FROM com_us_lake.cnp_bd_cbk_sls  WHERE  aud_row_stat_ind='0'  and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY')
+) ,
 udef_na_hierarchy as
 ( select channel_type,flex_cust_number,contract_id from com_us_lake.udef_na_hierarchy  group by channel_type,flex_cust_number,contract_id)
   
@@ -111,8 +113,8 @@ Reporting_geoup_final_check,Blank_Reporting_group,corp_us_lake,generalledger_lin
 dq_20311,Blank_prod_desc,com_us_lake,dagg_cdit_redist,prod_nm,"
 
 with  dagg_cdit_redist as 
-(select product_name,contract_id,parent_customer from  com_us_lake.dagg_cdit_redist    WHERE  aud_row_stat_ind='0'
---union  select product_name,contract_id,parent_customer FROM com_us_lake.cnp_bd_cbk_sls  WHERE  aud_row_stat_ind='0'
+(select product_name,contract_id,parent_customer from  com_us_lake.dagg_cdit_redist    WHERE  aud_row_stat_ind='0' and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
+union  select product_name,contract_id,parent_customer FROM com_us_lake.cnp_bd_cbk_sls  WHERE  aud_row_stat_ind='0' and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
  )
  ,
  tmp as
@@ -231,8 +233,8 @@ and NULLIF(TRIM( prod_nm), '')  is null
     select count(1) from tmp",P1,0,108
 prod_desc_blank_final_check,Blank_prod_desc,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from corp_us_lake.dq_output_table where entity_id in ('dq_20311','dq_20312')",P1,0,109
 dq_20411,Blank_channel_nm,com_us_lake,dagg_cdit_redist,row_id,"with dagg_cdit_redist as 
-(select product_name,contract_id,parent_customer,aud_row_stat_ind from  com_us_lake.dagg_cdit_redist    WHERE  aud_row_stat_ind='0'
---union  select product_name,contract_id,parent_customer,aud_row_stat_ind FROM com_us_lake.cnp_bd_cbk_sls WHERE  aud_row_stat_ind='0'
+(select product_name,contract_id,parent_customer,aud_row_stat_ind from  com_us_lake.dagg_cdit_redist    WHERE  aud_row_stat_ind='0'  and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
+union  select product_name,contract_id,parent_customer,aud_row_stat_ind FROM com_us_lake.cnp_bd_cbk_sls WHERE  aud_row_stat_ind='0'  and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
  ) ,
  
  tmp as (
@@ -334,13 +336,19 @@ channel_nm_final_check,channel_nm_blank,corp_us_lake,generalledger_lineitems_tak
 dq_20511,Blank_End_cust_nm,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
 (select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer ,gl_date from 
 com_us_lake.dagg_cdit_redist a where    aud_row_stat_ind='0' 
-and a.gl_date>to_Date(add_months(a.gl_date , -48),'MM/DD/YYYY') ) ,
---select * from dagg_cdit_redist
+and a.gl_date>to_Date(add_months(a.gl_date , -48),'MM/DD/YYYY') 
+
+union 
+select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer ,gl_date FROM com_us_lake.cnp_bd_cbk_sls  WHERE  aud_row_stat_ind='0'  and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
+
+
+) ,
+
 ref_cust_profile as 
 ( select  *  from com_us_hub.ref_cust_profile ),
 udef_na_hierarchy as
 ( select channel_type,flex_cust_number,contract_id from com_us_lake.udef_na_hierarchy  group by channel_type,flex_cust_number,contract_id),
-  
+ref_cust_xref  ( select omni_id,src_id,src_system from com_us_hub.ref_cust_xref),
 tmp as 
 (
 select     
@@ -360,20 +368,20 @@ from  dagg_cdit_redist a
   left  join 
   (select  omni_id  from ref_cust_profile where scd_curr_ind='Y' group by omni_id) cust_profile
    
-  on CAST(case when a.source=""BD"" THEN a.ship_to_org_id ELSE prescriber_id END AS VARCHAR(50))= cust_profile.omni_id 
+  on CAST(case when a.source='BD' THEN a.ship_to_org_id ELSE prescriber_id END AS VARCHAR(50))= cust_profile.omni_id 
   
   left join 
   
-  (select a.omni_id,a.src_id  from com_us_hub.ref_cust_xref a
+  (select a.omni_id,a.src_id  from ref_cust_xref a  
 left join  com_us_lake.feed_lkp b on upper(a.src_system)=upper(b.src_system) where b.src is not null and b.src='LH' group by  a.omni_id,a.src_id  )  xref
 
-on    CAST(case when a.source=""BD"" THEN a.ship_to_org_id ELSE prescriber_id END AS VARCHAR(50))= xref.src_id
+on    CAST(case when a.source='BD' THEN a.ship_to_org_id ELSE prescriber_id END AS VARCHAR(50))= xref.src_id
 
 left join
 
-(select a.omni_id,ltrim('0',a.src_id) as src_id from com_us_hub.ref_cust_xref a
+(select a.omni_id,ltrim('0',a.src_id) as src_id from ref_cust_xref a
 left join  com_us_lake.feed_lkp b on upper(a.src_system)=upper(b.src_system) where b.src is not null  and b.src='LH'  group by a.omni_id,ltrim('0',a.src_id) )  cust_xref
-on cust_xref.src_id= CAST(case when a.source=""BD"" THEN a.ship_to_org_id ELSE prescriber_id END AS VARCHAR(50))
+on cust_xref.src_id= CAST(case when a.source='BD' THEN a.ship_to_org_id ELSE prescriber_id END AS VARCHAR(50))
 
   
 join com_us_lake.hem_affiliation_table pr on COALESCE(cust_profile.omni_id ,xref.src_id,cust_xref.src_id ) = pr.Shire_ID_End_Customer
@@ -381,7 +389,7 @@ join com_us_lake.hem_affiliation_table pr on COALESCE(cust_profile.omni_id ,xref
 where     --   a.gl_date>to_Date(add_months(a.gl_date , -48),'MM/DD/YYYY')  and  
 COALESCE(b.channel_type,c.channel_type,d.channel_type) ='SPP'  and  pr.Name_of_Account_End_Customer is null    ) 
 
-select count(1) from tmp",P1,0,113
+select count(1) from tmp ",P1,0,113
 dq_20512,Blank_End_cust_nm,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as
 (select 
 Billing_doc__date
@@ -456,7 +464,7 @@ Blank_End_cust_nm_check,Blank_End_cust_nm_count,corp_us_lake,generalledger_linei
 dq_20611,Blank_contract_id,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
 (select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer  from 
 com_us_lake.dagg_cdit_redist a where    aud_row_stat_ind='0' and  to_date(gl_date,'dd/MM/yyyy') > trunc(add_months(current_date,-48),'mm') 
---union select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer FROM com_us_lake.cnp_bd_cbk_sls  WHERE  aud_row_stat_ind='0'
+union select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer FROM com_us_lake.cnp_bd_cbk_sls  WHERE  aud_row_stat_ind='0' and  to_date(gl_date,'dd/MM/yyyy') > trunc(add_months(current_date,-48),'mm') 
 ) ,
 --select * from dagg_cdit_redist
 
@@ -693,30 +701,3 @@ and dayofweek(to_date(gl_date,'dd/MM/yyyy') )  not  in(1,7) )
 )
 select * from  tmp",P1,0,121
 Date_missing_final_check,Date_missing,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from corp_us_lake.dq_output_table where entity_id in ('dq_20711','dq_20712','dq_20713')",P1,0,122
-dq_20811,Blank_End_cust_nm,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as  (select * from com_us_lake.bpri_salesordertransactions 
-left join 
-      
-                        com_us_lake.man_lov fr_lov
-          ON ( regexp_replace(bpri_salesordertransactions.material,'^0+(?!$)','') = regexp_replace(fr_lov.LOV_CODE,'^0+(?!$)','')    
-               AND fr_lov.ENTITY_TYPE='all' AND fr_lov.LOOKUP_FIELD='franchise_nm' AND fr_lov.data_source='SAP'
-            ) )
-
-select count(*) from tmp",P1,0,123
-dq_20812,Blank_End_cust_nm,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as  (select * from com_us_lake.bpri_salesordertransactions 
-inner join 
-      
-                        com_us_lake.man_lov fr_lov
-          ON ( regexp_replace(bpri_salesordertransactions.material,'^0+(?!$)','') = regexp_replace(fr_lov.LOV_CODE,'^0+(?!$)','')    
-               AND fr_lov.ENTITY_TYPE='all' AND fr_lov.LOOKUP_FIELD='franchise_nm' AND fr_lov.data_source='SAP'
-            ) )
-
-select count(*) from tmp",P1,0,124
-dq_20813,Blank_End_cust_nm,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as  (select material from com_us_lake.bpri_salesordertransactions 
-inner join 
-      
-                        com_us_lake.man_lov fr_lov
-          ON ( regexp_replace(bpri_salesordertransactions.material,'^0+(?!$)','') = regexp_replace(fr_lov.LOV_CODE,'^0+(?!$)','')    
-               AND fr_lov.ENTITY_TYPE='all' AND fr_lov.LOOKUP_FIELD='franchise_nm' AND fr_lov.data_source='SAP'
-            ) )
-
-select count(*) from tmp",P1,0,125
