@@ -1,9 +1,0 @@
-﻿dq_check_id,Check,Database_name,table_name,primary_key_cols,sql_fr_run,priority,threshold,run_seq
-dq_20131,Dates_missing,com_us_mart_03,txn_dir_redist_sls,gl_date,"with tmp (
-select (select   count(distinct actual_date)  from com_us_hub.ref_cal 
-where   ( actual_date between  (to_Date(add_months(trunc(current_date, 'MM') , -48),'MM/DD/YYYY')) and  date_add(to_Date(trunc(current_date, 'MM') ,'MM/DD/YYYY'),-1)) and dayofweek(actual_date)  not in(1,7) )-
-(select  count(distinct gl_date) from com_us_mart_03.txn_dir_redist_sls
-where   ( gl_date between  (to_Date(add_months(trunc(current_date, 'MM') , -48),'MM/DD/YYYY')) and  date_add(to_Date(trunc(current_date, 'MM') ,'MM/DD/YYYY'),-1)) and dayofweek(gl_date)  not  in(1,7) )
-)
-select * from  tmp ",P1,0,1
-final_check From_Date and To_Date ,final_check,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM",Select case when metric > threshold then 1 else 0 end as res from dq_output_table where entity_id in (dq_20131),P1,0,2
