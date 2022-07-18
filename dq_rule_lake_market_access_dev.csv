@@ -1,4 +1,4 @@
-dq_check_id,Check,Database_name,table_name,primary_key_cols,ss,priority,threshold,run_seq
+dq_check_id,Check,Database_name,table_name,primary_key_cols,sql_fr_run,priority,threshold,run_seq
 dq_20712,date_missing,com_us_lake,bpri_salesordertransactions,row_id,"with bpri_salesordertransactions as 
 
 
