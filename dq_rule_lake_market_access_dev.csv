@@ -50,7 +50,6 @@ on prod_cod=regexp_replace(BPRI_BillingExtract.MATERIAL,""^0+"","""")
           
           and regexp_replace(BPRI_BillingExtract.MATERIAL,""^0+"","""")  is  null )
           select * from tmp",P1,0,102
-final_check,final_check,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from dq_output_table  where entity_id in ('dq_20111','dq_20112')",P1,0,103
 dq_20211,Blank_Reporting_group,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
 (select contract_id, parent_customer,ndc_code  from 
 com_us_lake.dagg_cdit_redist a where    aud_row_stat_ind='0'  and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
@@ -109,7 +108,6 @@ on prod_cod=regexp_replace(BPRI_BillingExtract.MATERIAL,""^0+"","""")
           and 
            NULLIF(TRIM(reporting_group), '')    is null
            ) select * from tmp",P1,0,105
-final_check,final_check,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from dq_output_table  where entity_id in ('dq_20211','dq_20212')",P1,0,106
 dq_20311,Blank_prod_desc,com_us_lake,dagg_cdit_redist,prod_nm,"
 
 with  dagg_cdit_redist as 
@@ -231,7 +229,6 @@ and NULLIF(TRIM( prod_nm), '')  is null
     )
     
     select count(1) from tmp",P1,0,108
-final_check,final_check,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from dq_output_table  where entity_id in ('dq_20311','dq_20312')",P1,0,109
 dq_20411,Blank_channel_nm,com_us_lake,dagg_cdit_redist,row_id,"with dagg_cdit_redist as 
 (select product_name,contract_id,parent_customer,aud_row_stat_ind from  com_us_lake.dagg_cdit_redist    WHERE  aud_row_stat_ind='0'  and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
 union  select product_name,contract_id,parent_customer,aud_row_stat_ind FROM com_us_lake.cnp_bd_cbk_sls WHERE  aud_row_stat_ind='0'  and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
@@ -332,7 +329,6 @@ and NULLIF(TRIM( channel_name), '')  is null
     )
     
     select count(1) from tmp",P1,0,111
-final_check,final_check,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from dq_output_table  where entity_id in ('dq_20411','dq_20412')",P1,0,112
 dq_20511,Blank_End_cust_nm,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
 (select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer ,gl_date from 
 com_us_lake.dagg_cdit_redist a where    aud_row_stat_ind='0' 
@@ -460,7 +456,6 @@ on  cust_xref.src_id=sa.end_cust_num  and  cust_xref.feed ='SAP'
 where pr.Name_of_Account_End_Customer  is null)
 
 select * from tmp",P1,0,114
-final_check,final_check,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from dq_output_table  where entity_id in ('dq_20511','dq_20512')",P1,0,115
 dq_20611,Blank_contract_id,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
 (select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer  from 
 com_us_lake.dagg_cdit_redist a where    aud_row_stat_ind='0' and  to_date(gl_date,'dd/MM/yyyy') > trunc(add_months(current_date,-48),'mm') 
@@ -617,7 +612,6 @@ and tmp.doc_date =lkp2.master_end_date
 
  where Coalesce(lkp.contract_id, lkp2.contract_id) is   null
  ",P1,0,117
-final_check,final_check,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from dq_output_table  where entity_id in ('dq_20611','dq_20612')",P1,0,118
 dq_20711,date_missing,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
 (select gl_date from 
 com_us_lake.dagg_cdit_redist a where    aud_row_stat_ind='0' and     ( gl_date between  (to_Date(add_months(trunc(current_date, 'MM') , -48),'MM/DD/YYYY')) and  date_add(to_Date(trunc(current_date, 'MM') ,'MM/DD/YYYY'),-1)) and dayofweek(gl_date)  not  in(1,7) group by  gl_date
@@ -700,4 +694,4 @@ and  date_add(to_Date(trunc(current_date, 'MM') ,'MM/DD/YYYY'),-1)
 and dayofweek(to_date(gl_date,'dd/MM/yyyy') )  not  in(1,7) )
 )
 select * from  tmp",P1,0,121
-final_check,final_check,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select case when metric > threshold then 1 else 0 end as res from dq_output_table  where entity_id in ('dq_20711','dq_20712','dq_20713')",P1,0,122
+final_check,final_check,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","select res from (select case when metric > threshold then 1 else 0 end as res,dense_rank() over(partition by  entity_id    order by timestamp(insertdate)) r,timestamp(insertdate)   from corp_us_lake.dq_output_table   where entity_id in ('dq_20111','dq_20112','dq_20211','dq_20212','dq_20311','dq_20312','dq_20411','dq_20412','dq_20511','dq_20512','dq_20611','dq_20612','dq_20711','dq_20712','dq_20713') and to_date(insertdate,'dd/MM/yyyy')=(select max(to_date(insertdate,'dd/MM/yyyy')) from corp_us_lake.dq_output_table where entity_id in ('dq_20111','dq_20112','dq_20211','dq_20212','dq_20311','dq_20312','dq_20411','dq_20412','dq_20511','dq_20512','dq_20611','dq_20612','dq_20711','dq_20712','dq_20713'))) where r=1",P1,0,122
