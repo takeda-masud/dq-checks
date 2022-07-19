@@ -17,7 +17,7 @@ on a.product_name=prd.prod_id
    com_us_lake.udef_na_hierarchy d on 
    a.contract_id=substr(d.contract_id,2,5) 
      where COALESCE(b.channel_type,c.channel_type,d.channel_type) ='SPP'
-  and prd.prod_id is null	",P1,0,101
+  and prd.prod_id is null	",P1,0,1
 dq_20112,Blank_prod_id,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as(
 
 SELECT 
@@ -49,7 +49,7 @@ on prod_cod=regexp_replace(BPRI_BillingExtract.MATERIAL,""^0+"","""")
           where channel_type='SPP'
           
           and regexp_replace(BPRI_BillingExtract.MATERIAL,""^0+"","""")  is  null )
-          select * from tmp",P1,0,102
+          select * from tmp",P1,0,2
 dq_20211,Blank_Reporting_group,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
 (select contract_id, parent_customer,ndc_code  from 
 com_us_lake.dagg_cdit_redist a where    aud_row_stat_ind='0'  and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
@@ -75,7 +75,7 @@ from  dagg_cdit_redist a
    udef_na_hierarchy d on 
    a.contract_id=substr(d.contract_id,2,5) 
   where  COALESCE(b.channel_type,c.channel_type,d.channel_type) ='SPP'  
- and   NULLIF(TRIM(ndc_code), '')    is null",P1,0,104
+ and   NULLIF(TRIM(ndc_code), '')    is null",P1,0,3
 dq_20212,Blank_Reporting_group,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as
 (SELECT 
  count(*)
@@ -107,7 +107,7 @@ on prod_cod=regexp_replace(BPRI_BillingExtract.MATERIAL,""^0+"","""")
           where channel_type='SPP'
           and 
            NULLIF(TRIM(reporting_group), '')    is null
-           ) select * from tmp",P1,0,105
+           ) select * from tmp",P1,0,4
 dq_20311,Blank_prod_desc,com_us_lake,dagg_cdit_redist,prod_nm,"
 
 with  dagg_cdit_redist as 
@@ -137,7 +137,7 @@ on a.product_name=prd.prod_id
   where COALESCE(b.channel_type,c.channel_type,d.channel_type) ='SPP'
  AND   NULLIF(TRIM( prd.prod_nm), '')    is null
  )	
- select * from tmp",P1,0,107
+ select * from tmp",P1,0,5
 dq_20312,Blank_prod_desc,com_us_lake,bpri_salesordertransactions,prod_nm,"with prd  as
 (select * from  com_us_hub.ref_prd_prod),
 bpri_salesordertransactions as
@@ -228,7 +228,7 @@ and NULLIF(TRIM( prod_nm), '')  is null
   ) 
     )
     
-    select count(1) from tmp",P1,0,108
+    select count(1) from tmp",P1,0,6
 dq_20411,Blank_channel_nm,com_us_lake,dagg_cdit_redist,row_id,"with dagg_cdit_redist as 
 (select product_name,contract_id,parent_customer,aud_row_stat_ind from  com_us_lake.dagg_cdit_redist    WHERE  aud_row_stat_ind='0'  and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
 union  select product_name,contract_id,parent_customer,aud_row_stat_ind FROM com_us_lake.cnp_bd_cbk_sls WHERE  aud_row_stat_ind='0'  and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
@@ -251,7 +251,7 @@ union  select product_name,contract_id,parent_customer,aud_row_stat_ind FROM com
    )
    
    select count(channel_name ) from tmp where  channel_type = 'SPP'  and  NULLIF(TRIM( channel_name), '') is null
-   ",P1,0,110
+   ",P1,0,7
 dq_20412,Blank_channel_nm,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as  (select  channel_type,channel_name from (			SELECT 
 
 bpri_customermasterdata.customer Bill_To_Cust_NM    	
@@ -328,7 +328,7 @@ and NULLIF(TRIM( channel_name), '')  is null
   ) 
     )
     
-    select count(1) from tmp",P1,0,111
+    select count(1) from tmp",P1,0,8
 dq_20511,Blank_End_cust_nm,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
 (select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer ,gl_date from 
 com_us_lake.dagg_cdit_redist a where    aud_row_stat_ind='0' 
@@ -385,7 +385,7 @@ join com_us_lake.hem_affiliation_table pr on COALESCE(cust_profile.omni_id ,xref
 where     --   a.gl_date>to_Date(add_months(a.gl_date , -48),'MM/DD/YYYY')  and  
 COALESCE(b.channel_type,c.channel_type,d.channel_type) ='SPP'  and  pr.Name_of_Account_End_Customer is null    ) 
 
-select count(1) from tmp ",P1,0,113
+select count(1) from tmp ",P1,0,9
 dq_20512,Blank_End_cust_nm,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as
 (select 
 Billing_doc__date
@@ -455,7 +455,7 @@ on  cust_xref.src_id=sa.end_cust_num  and  cust_xref.feed ='SAP'
 
 where pr.Name_of_Account_End_Customer  is null)
 
-select * from tmp",P1,0,114
+select * from tmp",P1,0,10
 dq_20611,Blank_contract_id,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
 (select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer  from 
 com_us_lake.dagg_cdit_redist a where    aud_row_stat_ind='0' and  to_date(gl_date,'dd/MM/yyyy') > trunc(add_months(current_date,-48),'mm') 
@@ -487,7 +487,7 @@ from  dagg_cdit_redist a
 
 where nullif (a.contract_id,'')  is null  and
 COALESCE(b.channel_type,c.channel_type,d.channel_type) ='SPP')
-select count(1) from tmp",P1,0,116
+select count(1) from tmp",P1,0,11
 dq_20612,Blank_contract_id,com_us_lake,bpri_salesordertransactions,doc_number,"with bpri_salesordertransactions as 
 
 
@@ -611,7 +611,7 @@ and tmp.doc_date=lkp2.master_end_date
 and tmp.doc_date =lkp2.master_end_date
 
  where Coalesce(lkp.contract_id, lkp2.contract_id) is   null
- ",P1,0,117
+ ",P1,0,12
 dq_20711,date_missing,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
 (select gl_date from 
 com_us_lake.dagg_cdit_redist a where    aud_row_stat_ind='0' and     ( gl_date between  (to_Date(add_months(trunc(current_date, 'MM') , -48),'MM/DD/YYYY')) and  date_add(to_Date(trunc(current_date, 'MM') ,'MM/DD/YYYY'),-1)) and dayofweek(gl_date)  not  in(1,7) group by  gl_date
@@ -623,7 +623,7 @@ select (select   count(distinct actual_date)  from com_us_hub.ref_cal
 where   ( actual_date between  (to_Date(add_months(trunc(current_date, 'MM') , -48),'MM/DD/YYYY')) and  date_add(to_Date(trunc(current_date, 'MM') ,'MM/DD/YYYY'),-1)) and dayofweek(actual_date)  not in(1,7) )-
 (select count(gl_date) from dagg_cdit_redist )
 )
-select * from  tmp",P1,0,119
+select * from  tmp",P1,0,13
 dq_20712,date_missing,com_us_lake,bpri_salesordertransactions,row_id,"with bpri_salesordertransactions as 
 
 
@@ -682,16 +682,5 @@ where   ( actual_date between  (to_Date(add_months(trunc(current_date, 'MM') , -
 
 (select count( gl_date)  from tmp
 where   ( to_date(gl_date,'dd/MM/yyyy')  between  (to_Date(add_months(trunc(current_date, 'MM') , -48),'dd/MM/yyyy')) and  date_add(to_Date(trunc(current_date, 'MM') ,'MM/DD/YYYY'),-1)) and dayofweek(to_date(gl_date,'dd/MM/yyyy') )  not  in(1,7)
-)",P1,0,120
-dq_20713,date_missing,com_us_lake,udef_ic_order_adjustments,gl_date,"with  tmp (
-select (select   count(distinct actual_date)  from com_us_hub.ref_cal 
-where   ( actual_date between  (to_Date(add_months(trunc(current_date, 'MM') , -48),'MM/DD/YYYY')) and  date_add(to_Date(trunc(current_date, 'MM') ,'MM/DD/YYYY'),-1)) and dayofweek(actual_date)  not in(1,7) )-
-(SELECT 
-count(distinct gl_date)
-FROM com_us_lake.udef_ic_order_adjustments
-WHERE id is NOT NULL and  to_date(gl_date,'yyyy-MM-dd') between  to_Date(add_months(trunc(current_date, 'MM') , -48),'dd/MM/yyyy')
-and  date_add(to_Date(trunc(current_date, 'MM') ,'MM/DD/YYYY'),-1)
-and dayofweek(to_date(gl_date,'dd/MM/yyyy') )  not  in(1,7) )
-)
-select * from  tmp",P1,0,121
-final_check,final_check,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","with latest as ( select metric,threshold,entity_id,row_number() over (partition by entity_id order by  insertdate desc) as rank from dq_output_table) Select case when metric > threshold then 1 else 0 end as res from latest where entity_id in ('dq_20111','dq_20112','dq_20211','dq_20212','dq_20311','dq_20312','dq_20411','dq_20412','dq_20511','dq_20512','dq_20611','dq_20612','dq_20711','dq_20712','dq_20713') and rank=1",P1,0,122
+)",P1,0,14
+final_check,final_check,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","with latest as ( select metric,threshold,entity_id,row_number() over (partition by entity_id order by  insertdate desc) as rank from dq_output_table) Select case when metric > threshold then 1 else 0 end as res from latest where entity_id in ('dq_20111','dq_20112','dq_20211','dq_20212','dq_20311','dq_20312','dq_20411','dq_20412','dq_20511','dq_20512','dq_20611','dq_20612','dq_20711','dq_20712','dq_20713') and rank=1",P1,0,15
