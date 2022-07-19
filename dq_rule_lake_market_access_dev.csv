@@ -44,4 +44,4 @@ from  dagg_cdit_redist a
    a.contract_id=substr(d.contract_id,2,5) 
   where  COALESCE(b.channel_type,c.channel_type,d.channel_type) ='SPP'  
  and   NULLIF(TRIM(ndc_code), '')    is null",P1,0,2
-final_check,final_check,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","with latest as ( select metric,threshold,entity_id,row_number() over (partition by entity_id order by  insertdate desc) as rank from dq_output_table) Select case when metric > threshold then 1 else 0 end as res from latest where entity_id in ('dq_20111','dq_20112') and rank=1",P1,0,3
+final_check,final_check,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","Select case when metric > threshold then 1 else 0 end as res from dq_output_table where entity_id in ('dq_20111','dq_20112')",P1,0,3
