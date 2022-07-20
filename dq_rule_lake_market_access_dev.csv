@@ -683,4 +683,6 @@ where   ( actual_date between  (to_Date(add_months(trunc(current_date, 'MM') , -
 (select count( gl_date)  from tmp
 where   ( to_date(gl_date,'dd/MM/yyyy')  between  (to_Date(add_months(trunc(current_date, 'MM') , -48),'dd/MM/yyyy')) and  date_add(to_Date(trunc(current_date, 'MM') ,'MM/DD/YYYY'),-1)) and dayofweek(to_date(gl_date,'dd/MM/yyyy') )  not  in(1,7)
 )",P1,0,14
-final_check,final_check,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM","with latest as ( select metric,threshold,entity_id,row_number() over (partition by entity_id order by  insertdate desc) as rank from Corp_us_lake.dq_output_table) Select max( case when metric > threshold then 1 else 0 end) as res from latest where entity_id in ('dq_20111','dq_20112','dq_20211','dq_20212','dq_20311','dq_20312','dq_20411','dq_20412','dq_20511','dq_20512','dq_20611','dq_20612','dq_20711','dq_20712') and rank=1",P1,0,15
+final_check,final_check,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM"," select max( case when metric > threshold then 1 else 0 end) as res from 
+ ( select metric,threshold,entity_id,row_number() over (partition by entity_id order by  insertdate desc) as rank from Corp_us_lake.dq_output_table)
+ where entity_id in ('dq_20111','dq_20112','dq_20211','dq_20212','dq_20311','dq_20312','dq_20411','dq_20412','dq_20511','dq_20512','dq_20611','dq_20612','dq_20711','dq_20712') and rank= 1 ",P1,0,15
