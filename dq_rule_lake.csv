@@ -1,0 +1,687 @@
+dq_check_id,Check,Database_name,table_name,primary_key_cols,sql_fr_run,priority,threshold,run_seq
+dq_20111,Blank_prod_id,com_us_lake,dagg_cdit_redist,row_id,"with dagg_cdit_redist as 
+(select product_name,contract_id,parent_customer,aud_row_stat_ind from  com_us_lake.dagg_cdit_redist    WHERE  aud_row_stat_ind='0'
+--union  select product_name,contract_id,parent_customer,aud_row_stat_ind FROM com_us_lake.cnp_bd_cbk_sls  WHERE  aud_row_stat_ind='0'
+ ) select count(*) FROM dagg_cdit_redist  a
+ left join 
+( SELECT  prod_id
+FROM com_us_hub.ref_prd_prod prd
+WHERE aud_row_stat_ind='0' group by prod_id) prd
+on a.product_name=prd.prod_id 
+ left join 
+   com_us_lake.udef_na_hierarchy   b    on a.parent_customer=b.flex_cust_number
+   left join
+    com_us_lake.udef_na_hierarchy c on 
+   a.contract_id=c.contract_id
+    left join 
+   com_us_lake.udef_na_hierarchy d on 
+   a.contract_id=substr(d.contract_id,2,5) 
+     where COALESCE(b.channel_type,c.channel_type,d.channel_type) ='SPP'
+  and prd.prod_id is null	",P1,0,1
+dq_20112,Blank_prod_id,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as(
+
+SELECT 
+count(*)
+FROM com_us_lake.BPRI_BillingExtract BPRI_BillingExtract
+INNER JOIN com_us_lake.bpri_salesordertransactions
+
+         ON (
+         regexp_replace(bpri_salesordertransactions.doc_number,""^0+(?!$)"","""") = regexp_replace(BPRI_BillingExtract.Sales_document,""^0+(?!$)"","""") 
+         AND regexp_replace(bpri_salesordertransactions.s_ord_item,""^0+(?!$)"","""") =  regexp_replace(BPRI_BillingExtract.Sales_doc_Item,""^0+(?!$)"","""")
+             )          
+          INNER JOIN
+com_us_lake.bpri_materialmasterdata
+          ON (    
+bpri_salesordertransactions.material=bpri_materialmasterdata.material
+                     AND bpri_materialmasterdata.logsys in('PRDCLNT100')
+		    AND bpri_materialmasterdata.MATL_TYPE in (""FINI"",'TRAD')
+            ) 
+            left join
+         com_us_lake.udef_na_hierarchy   
+         on sap_cust_number=trim(LEADING '0' FROM BPRI_BillingExtract.Sold_to_party)   
+         
+         left join 
+      
+        (SELECT 
+regexp_replace(udef_ndc_hier.product_code,""^0+(?!$)"","""") as prod_cod,
+udef_ndc_hier.reporting_group FROM com_us_lake.udef_ndc_hier WHERE (udef_ndc_hier.aud_row_status_ind='0')  )
+on prod_cod=regexp_replace(BPRI_BillingExtract.MATERIAL,""^0+"","""") 
+          where channel_type='SPP'
+          
+          and regexp_replace(BPRI_BillingExtract.MATERIAL,""^0+"","""")  is  null )
+          select * from tmp",P1,0,2
+dq_20211,Blank_Reporting_group,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
+(select contract_id, parent_customer,ndc_code  from 
+com_us_lake.dagg_cdit_redist a where    aud_row_stat_ind='0'  and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
+union 
+select contract_id, parent_customer,ndc_code FROM com_us_lake.cnp_bd_cbk_sls  WHERE  aud_row_stat_ind='0'  and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY')
+) ,
+udef_na_hierarchy as
+( select channel_type,flex_cust_number,contract_id from com_us_lake.udef_na_hierarchy  group by channel_type,flex_cust_number,contract_id)
+  
+
+select     
+  
+count(ndc_code) 
+
+from  dagg_cdit_redist a
+ left join 
+   udef_na_hierarchy   b    on a.parent_customer=b.flex_cust_number
+   left join
+    udef_na_hierarchy c on 
+   a.contract_id=c.contract_id
+  
+  left join 
+   udef_na_hierarchy d on 
+   a.contract_id=substr(d.contract_id,2,5) 
+  where  COALESCE(b.channel_type,c.channel_type,d.channel_type) ='SPP'  
+ and   NULLIF(TRIM(ndc_code), '')    is null",P1,0,3
+dq_20212,Blank_Reporting_group,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as
+(SELECT 
+ count(*)
+
+FROM com_us_lake.BPRI_BillingExtract BPRI_BillingExtract
+INNER JOIN com_us_lake.bpri_salesordertransactions
+
+         ON (
+         regexp_replace(bpri_salesordertransactions.doc_number,""^0+(?!$)"","""") = regexp_replace(BPRI_BillingExtract.Sales_document,""^0+(?!$)"","""") 
+         AND regexp_replace(bpri_salesordertransactions.s_ord_item,""^0+(?!$)"","""") =  regexp_replace(BPRI_BillingExtract.Sales_doc_Item,""^0+(?!$)"","""")
+             )          
+          INNER JOIN
+com_us_lake.bpri_materialmasterdata
+          ON (    
+bpri_salesordertransactions.material=bpri_materialmasterdata.material
+                     AND bpri_materialmasterdata.logsys in('PRDCLNT100')
+		    AND bpri_materialmasterdata.MATL_TYPE in (""FINI"",'TRAD')
+            ) 
+            left join
+         com_us_lake.udef_na_hierarchy   
+         on sap_cust_number=trim(LEADING '0' FROM BPRI_BillingExtract.Sold_to_party)   
+         
+         left join 
+      
+        (SELECT 
+regexp_replace(udef_ndc_hier.product_code,""^0+(?!$)"","""") as prod_cod,
+udef_ndc_hier.reporting_group FROM com_us_lake.udef_ndc_hier WHERE (udef_ndc_hier.aud_row_status_ind='0')  )
+on prod_cod=regexp_replace(BPRI_BillingExtract.MATERIAL,""^0+"","""") 
+          where channel_type='SPP'
+          and 
+           NULLIF(TRIM(reporting_group), '')    is null
+           ) select * from tmp",P1,0,4
+dq_20311,Blank_prod_desc,com_us_lake,dagg_cdit_redist,prod_nm,"
+
+with  dagg_cdit_redist as 
+(select product_name,contract_id,parent_customer from  com_us_lake.dagg_cdit_redist    WHERE  aud_row_stat_ind='0' and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
+union  select product_name,contract_id,parent_customer FROM com_us_lake.cnp_bd_cbk_sls  WHERE  aud_row_stat_ind='0' and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
+ )
+ ,
+ tmp as
+(select count(prod_nm) 
+
+FROM dagg_cdit_redist  a
+ left join 
+( SELECT  prod_id,prod_nm
+FROM com_us_hub.ref_prd_prod prd
+WHERE aud_row_stat_ind='0' group by prod_id,prod_nm) prd
+on a.product_name=prd.prod_id 
+ left join 
+   com_us_lake.udef_na_hierarchy   b    on a.parent_customer=b.flex_cust_number
+   left join
+    com_us_lake.udef_na_hierarchy c on 
+   a.contract_id=c.contract_id
+  
+  left join 
+   com_us_lake.udef_na_hierarchy d on 
+   a.contract_id=substr(d.contract_id,2,5) 
+   
+  where COALESCE(b.channel_type,c.channel_type,d.channel_type) ='SPP'
+ AND   NULLIF(TRIM( prd.prod_nm), '')    is null
+ )	
+ select * from tmp",P1,0,5
+dq_20312,Blank_prod_desc,com_us_lake,bpri_salesordertransactions,prod_nm,"with prd  as
+(select * from  com_us_hub.ref_prd_prod),
+bpri_salesordertransactions as
+(
+select * from com_us_lake.bpri_salesordertransactions),
+
+udef_na_hierarchy  as ( select sap_cust_number,channel_type  from com_us_lake.udef_na_hierarchy group by sap_cust_number,channel_type ),
+
+tmp as 
+
+(select  prod_nm from (			SELECT 
+
+bpri_customermasterdata.customer Bill_To_Cust_NM    	
+,bpri_customermasterdata.customer,
+p.prod_nm
+FROM com_us_lake.BPRI_OpenOrderExtract BPRI_OpenOrderExtract
+INNER JOIN bpri_salesordertransactions
+         ON (
+         regexp_replace(bpri_salesordertransactions.doc_number,""^0+(?!$)"","""") = regexp_replace(BPRI_OpenOrderExtract.Sales_document,""^0+(?!$)"","""") 
+         AND regexp_replace(bpri_salesordertransactions.s_ord_item,""^0+(?!$)"","""") =  regexp_replace(BPRI_OpenOrderExtract.Sales_doc_Item,""^0+(?!$)"","""") 
+             )
+INNER JOIN com_us_lake.bpri_customermasterdata  bpri_customermasterdata
+on bpri_salesordertransactions.sold_to=bpri_customermasterdata.customer
+AND bpri_customermasterdata.logsys in('PRDCLNT100')
+inner JOIN
+       prd p
+        ON  regexp_replace(BPRI_OpenOrderExtract.MATERIAL,""^0+"","""") = regexp_replace(p.prod_id,""^0+(?!$)"","""")
+        
+        
+        
+        WHERE
+bpri_salesordertransactions.billtoprty <>'0000336234' 
+and (bpri_salesordertransactions.REASON_REJ is null or bpri_salesordertransactions.REASON_REJ = '')
+AND bpri_salesordertransactions.doc_type IN ('ZXOA','ZXDR','ZXCR','ZXOE','ZXOR')
+AND (bpri_salesordertransactions.STORNO  <> 'R' or bpri_salesordertransactions.STORNO is null or bpri_salesordertransactions.STORNO = '')
+AND bpri_salesordertransactions.comp_code  in ('3390','3311','3312')
+)  a 
+
+left join
+         udef_na_hierarchy   
+         on sap_cust_number=trim(LEADING '0' FROM a.customer)   
+         where channel_type ='SPP'
+       and NULLIF(TRIM( prod_nm), '')  is null
+         
+         union 
+         
+         (SELECT 
+ 
+  	 p.prod_nm
+
+
+FROM com_us_lake.BPRI_BillingExtract BPRI_BillingExtract
+INNER JOIN bpri_salesordertransactions
+
+         ON (
+         regexp_replace(bpri_salesordertransactions.doc_number,""^0+(?!$)"","""") = regexp_replace(BPRI_BillingExtract.Sales_document,""^0+(?!$)"","""") 
+         AND regexp_replace(bpri_salesordertransactions.s_ord_item,""^0+(?!$)"","""") =  regexp_replace(BPRI_BillingExtract.Sales_doc_Item,""^0+(?!$)"","""")
+             )          
+          INNER JOIN
+com_us_lake.bpri_materialmasterdata
+          ON (    
+bpri_salesordertransactions.material=bpri_materialmasterdata.material
+                     AND bpri_materialmasterdata.logsys in('PRDCLNT100')
+		    AND bpri_materialmasterdata.MATL_TYPE in (""FINI"",'TRAD')
+            ) 
+            left join
+         udef_na_hierarchy   
+         on sap_cust_number=trim(LEADING '0' FROM BPRI_BillingExtract.Sold_to_party)   
+         
+   		   INNER JOIN 
+com_us_lake.bpri_customermasterdata
+   on bpri_salesordertransactions.sold_to=bpri_customermasterdata.customer
+AND bpri_customermasterdata.logsys in('PRDCLNT100')
+
+               inner JOIN
+        prd p
+        ON(regexp_replace(bpri_materialmasterdata.material,""^0+(?!$)"","""") = regexp_replace(p.prod_id,""^0+(?!$)"","""")) 
+
+
+  where  
+    bpri_salesordertransactions.billtoprty <>'0000336234' 
+  AND bpri_salesordertransactions.doc_type IN ('ZXOA','ZXDR','ZXCR','ZXOE','ZXOR')
+  and (bpri_salesordertransactions.STORNO  <> 'R' or bpri_salesordertransactions.STORNO is null)
+	AND bpri_salesordertransactions.comp_code  in ('3390','3311','3312')
+
+and channel_type='SPP'
+and NULLIF(TRIM( prod_nm), '')  is null
+  ) 
+    )
+    
+    select count(1) from tmp",P1,0,6
+dq_20411,Blank_channel_nm,com_us_lake,dagg_cdit_redist,row_id,"with dagg_cdit_redist as 
+(select product_name,contract_id,parent_customer,aud_row_stat_ind from  com_us_lake.dagg_cdit_redist    WHERE  aud_row_stat_ind='0'  and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
+union  select product_name,contract_id,parent_customer,aud_row_stat_ind FROM com_us_lake.cnp_bd_cbk_sls WHERE  aud_row_stat_ind='0'  and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
+ ) ,
+ 
+ tmp as (
+ select COALESCE(b.channel_name,c.channel_name,d.channel_name) channel_name ,
+ COALESCE(b.channel_type,c.channel_type,d.channel_type) channel_type 
+  from dagg_cdit_redist a
+ left join 
+   com_us_lake.udef_na_hierarchy   b    on a.parent_customer=b.flex_cust_number
+   left join
+    com_us_lake.udef_na_hierarchy c on 
+   a.contract_id=c.contract_id
+  
+  left join 
+   com_us_lake.udef_na_hierarchy d on 
+   a.contract_id=substr(d.contract_id,2,5) 
+     
+   )
+   
+   select count(channel_name ) from tmp where  channel_type = 'SPP'  and  NULLIF(TRIM( channel_name), '') is null
+   ",P1,0,7
+dq_20412,Blank_channel_nm,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as  (select  channel_type,channel_name from (			SELECT 
+
+bpri_customermasterdata.customer Bill_To_Cust_NM    	
+,bpri_customermasterdata.customer
+
+FROM com_us_lake.BPRI_OpenOrderExtract BPRI_OpenOrderExtract
+INNER JOIN com_us_lake.bpri_salesordertransactions
+         ON (
+         regexp_replace(bpri_salesordertransactions.doc_number,""^0+(?!$)"","""") = regexp_replace(BPRI_OpenOrderExtract.Sales_document,""^0+(?!$)"","""") 
+         AND regexp_replace(bpri_salesordertransactions.s_ord_item,""^0+(?!$)"","""") =  regexp_replace(BPRI_OpenOrderExtract.Sales_doc_Item,""^0+(?!$)"","""") 
+             )
+INNER JOIN com_us_lake.bpri_customermasterdata  bpri_customermasterdata
+on bpri_salesordertransactions.sold_to=bpri_customermasterdata.customer
+AND bpri_customermasterdata.logsys in('PRDCLNT100')
+inner JOIN
+        com_us_hub.ref_prd_prod p
+        ON  regexp_replace(BPRI_OpenOrderExtract.MATERIAL,""^0+"","""") = regexp_replace(p.prod_id,""^0+(?!$)"","""")
+        
+        
+        
+        WHERE
+bpri_salesordertransactions.billtoprty <>'0000336234' 
+and (bpri_salesordertransactions.REASON_REJ is null or bpri_salesordertransactions.REASON_REJ = '')
+AND bpri_salesordertransactions.doc_type IN ('ZXOA','ZXDR','ZXCR','ZXOE','ZXOR')
+AND (bpri_salesordertransactions.STORNO  <> 'R' or bpri_salesordertransactions.STORNO is null or bpri_salesordertransactions.STORNO = '')
+AND bpri_salesordertransactions.comp_code  in ('3390','3311','3312')
+)  a 
+
+left join
+         com_us_lake.udef_na_hierarchy   
+         on sap_cust_number=trim(LEADING '0' FROM a.customer)   
+         where channel_type ='SPP'
+       and NULLIF(TRIM( channel_name), '')  is null
+         
+         union 
+         
+         (SELECT 
+ 
+distinct  channel_type	 ,channel_name
+
+
+FROM com_us_lake.BPRI_BillingExtract BPRI_BillingExtract
+INNER JOIN com_us_lake.bpri_salesordertransactions
+
+         ON (
+         regexp_replace(bpri_salesordertransactions.doc_number,""^0+(?!$)"","""") = regexp_replace(BPRI_BillingExtract.Sales_document,""^0+(?!$)"","""") 
+         AND regexp_replace(bpri_salesordertransactions.s_ord_item,""^0+(?!$)"","""") =  regexp_replace(BPRI_BillingExtract.Sales_doc_Item,""^0+(?!$)"","""")
+             )          
+          INNER JOIN
+com_us_lake.bpri_materialmasterdata
+          ON (    
+bpri_salesordertransactions.material=bpri_materialmasterdata.material
+                     AND bpri_materialmasterdata.logsys in('PRDCLNT100')
+		    AND bpri_materialmasterdata.MATL_TYPE in (""FINI"",'TRAD')
+            ) 
+            left join
+         com_us_lake.udef_na_hierarchy   
+         on sap_cust_number=trim(LEADING '0' FROM BPRI_BillingExtract.Sold_to_party)   
+         
+   		   INNER JOIN 
+com_us_lake.bpri_customermasterdata
+   on bpri_salesordertransactions.sold_to=bpri_customermasterdata.customer
+AND bpri_customermasterdata.logsys in('PRDCLNT100')
+
+
+  where  
+    bpri_salesordertransactions.billtoprty <>'0000336234' 
+  AND bpri_salesordertransactions.doc_type IN ('ZXOA','ZXDR','ZXCR','ZXOE','ZXOR')
+  and (bpri_salesordertransactions.STORNO  <> 'R' or bpri_salesordertransactions.STORNO is null)
+	AND bpri_salesordertransactions.comp_code  in ('3390','3311','3312')
+
+and channel_type='SPP'
+and NULLIF(TRIM( channel_name), '')  is null
+  ) 
+    )
+    
+    select count(1) from tmp",P1,0,8
+dq_20511,Blank_End_cust_nm,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
+(select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer ,gl_date from 
+com_us_lake.dagg_cdit_redist a where    aud_row_stat_ind='0' 
+and a.gl_date>to_Date(add_months(a.gl_date , -48),'MM/DD/YYYY') 
+
+union 
+select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer ,gl_date FROM com_us_lake.cnp_bd_cbk_sls  WHERE  aud_row_stat_ind='0'  and to_date(gl_date,'yyyy-MM-dd')>to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
+
+
+) ,
+
+ref_cust_profile as 
+( select  *  from com_us_hub.ref_cust_profile ),
+udef_na_hierarchy as
+( select channel_type,flex_cust_number,contract_id from com_us_lake.udef_na_hierarchy  group by channel_type,flex_cust_number,contract_id),
+ref_cust_xref  ( select omni_id,src_id,src_system from com_us_hub.ref_cust_xref),
+tmp as 
+(
+select     
+  
+count(a.gl_date)
+
+from  dagg_cdit_redist a
+ left join 
+   udef_na_hierarchy   b    on a.parent_customer=b.flex_cust_number
+   left join
+    udef_na_hierarchy c on 
+   a.contract_id=c.contract_id
+  
+  left join 
+   udef_na_hierarchy d on 
+   a.contract_id=substr(d.contract_id,2,5) 
+  left  join 
+  (select  omni_id  from ref_cust_profile where scd_curr_ind='Y' group by omni_id) cust_profile
+   
+  on CAST(case when a.source='BD' THEN a.ship_to_org_id ELSE prescriber_id END AS VARCHAR(50))= cust_profile.omni_id 
+  
+  left join 
+  
+  (select a.omni_id,a.src_id  from ref_cust_xref a  
+left join  com_us_lake.feed_lkp b on upper(a.src_system)=upper(b.src_system) where b.src is not null and b.src='LH' group by  a.omni_id,a.src_id  )  xref
+
+on    CAST(case when a.source='BD' THEN a.ship_to_org_id ELSE prescriber_id END AS VARCHAR(50))= xref.src_id
+
+left join
+
+(select a.omni_id,ltrim('0',a.src_id) as src_id from ref_cust_xref a
+left join  com_us_lake.feed_lkp b on upper(a.src_system)=upper(b.src_system) where b.src is not null  and b.src='LH'  group by a.omni_id,ltrim('0',a.src_id) )  cust_xref
+on cust_xref.src_id= CAST(case when a.source='BD' THEN a.ship_to_org_id ELSE prescriber_id END AS VARCHAR(50))
+
+  
+join com_us_lake.hem_affiliation_table pr on COALESCE(cust_profile.omni_id ,xref.src_id,cust_xref.src_id ) = pr.Shire_ID_End_Customer
+
+where     --   a.gl_date>to_Date(add_months(a.gl_date , -48),'MM/DD/YYYY')  and  
+COALESCE(b.channel_type,c.channel_type,d.channel_type) ='SPP'  and  pr.Name_of_Account_End_Customer is null    ) 
+
+select count(1) from tmp ",P1,0,9
+dq_20512,Blank_End_cust_nm,com_us_lake,bpri_salesordertransactions,doc_number,"with tmp as
+(select 
+Billing_doc__date
+
+from 
+(SELECT 
+ 
+BPRI_BillingExtract.Billing_doc__date, 
+
+trim(LEADING '0' FROM 
+case when  upper(fr_lov.lov_description ) ='ONCOLOGY' then  BPRI_BillingExtract.Ship_To_Party else  BPRI_BillingExtract.Sold_to_party  end) end_cust_num 
+FROM com_us_lake.BPRI_BillingExtract BPRI_BillingExtract
+INNER JOIN com_us_lake.bpri_salesordertransactions
+
+         ON (
+         regexp_replace(bpri_salesordertransactions.doc_number,'^0+(?!$)','') = regexp_replace(BPRI_BillingExtract.Sales_document,'^0+(?!$)','') 
+         AND regexp_replace(bpri_salesordertransactions.s_ord_item,'^0+(?!$)','') =  regexp_replace(BPRI_BillingExtract.Sales_doc_Item,'^0+(?!$)','')
+             )          
+          INNER JOIN
+com_us_lake.bpri_materialmasterdata
+          ON (    
+bpri_salesordertransactions.material=bpri_materialmasterdata.material
+                     AND bpri_materialmasterdata.logsys in('PRDCLNT100')
+		    AND bpri_materialmasterdata.MATL_TYPE in ('FINI','TRAD')
+            ) 
+            left join
+       (select sap_cust_number,channel_type  from  com_us_lake.udef_na_hierarchy  group by  sap_cust_number,channel_type   ) 
+         on sap_cust_number=trim(LEADING '0' FROM BPRI_BillingExtract.Sold_to_party)   
+         
+         left join 
+      
+                        com_us_lake.man_lov fr_lov
+          ON ( regexp_replace(bpri_salesordertransactions.material,'^0+(?!$)','') = regexp_replace(fr_lov.LOV_CODE,'^0+(?!$)','')    
+               AND fr_lov.ENTITY_TYPE='all' AND fr_lov.LOOKUP_FIELD='franchise_nm' AND fr_lov.data_source='SAP'
+            )
+         -- where channel_type='SPP'
+		  
+		   INNER JOIN 
+com_us_lake.bpri_customermasterdata
+   on bpri_salesordertransactions.sold_to=bpri_customermasterdata.customer
+AND bpri_customermasterdata.logsys in('PRDCLNT100')
+
+
+where channel_type='SPP'  and to_date(BPRI_BillingExtract.Billing_doc__date, 'MM/dd/yy') >to_Date(add_months(current_date , -48),'MM/DD/YYYY') 
+)
+sa
+left join 
+com_us_Lake.jde_bpri_sap_cust_num_xref xref on  xref.Takeda_customer_id = sa.end_cust_num
+-- join com_us_lake.hem_affiliation_table pr on sa.end_cust_mstr_id = pr.Shire_ID_End_Customer
+ left join com_us_lake.jde_sap_cust_num_xref xref1  on xref.sap_cust_num=xref1.sap_cust_num
+ 
+
+ left join 
+ (select   omni_id from com_us_hub.ref_cust_profile where scd_curr_ind='Y'  group by omni_id) cus_pr 
+on   cus_pr.omni_id =sa.end_cust_num
+
+
+left join 
+(select a.omni_id xref_omni_id ,a.cust_profile_key,a.src_id,upper(b.src) as feed,upper(a.src_system) as src_system  from com_us_hub.ref_cust_xref a
+left join  com_us_lake.feed_lkp b on upper(a.src_system)=upper(b.src_system) where b.src is not null 
+ group by a.omni_id  ,a.cust_profile_key,a.src_id,upper(b.src) ,upper(a.src_system))  cust_xref 
+on  cust_xref.src_id=sa.end_cust_num  and  cust_xref.feed ='SAP'
+
+
+ 
+ join com_us_lake.hem_affiliation_table pr on COALESCE(cus_pr.omni_id ,cust_xref.xref_omni_id) = pr.Shire_ID_End_Customer
+
+where pr.Name_of_Account_End_Customer  is null)
+
+select * from tmp",P1,0,10
+dq_20611,Blank_contract_id,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
+(select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer  from 
+com_us_lake.dagg_cdit_redist a where    aud_row_stat_ind='0' and  to_date(gl_date,'dd/MM/yyyy') > trunc(add_months(current_date,-48),'mm') 
+union select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer FROM com_us_lake.cnp_bd_cbk_sls  WHERE  aud_row_stat_ind='0' and  to_date(gl_date,'dd/MM/yyyy') > trunc(add_months(current_date,-48),'mm') 
+) ,
+--select * from dagg_cdit_redist
+
+udef_na_hierarchy as
+( select channel_type,flex_cust_number,contract_id from com_us_lake.udef_na_hierarchy  group by channel_type,flex_cust_number,contract_id),
+  
+tmp as 
+(
+select     
+  
+COALESCE(b.channel_type,c.channel_type,d.channel_type) channel_type 
+
+from  dagg_cdit_redist a
+ left join 
+   udef_na_hierarchy   b    on a.parent_customer=b.flex_cust_number
+   left join
+    udef_na_hierarchy c on 
+   a.contract_id=c.contract_id
+  
+  left join 
+   udef_na_hierarchy d on 
+   a.contract_id=substr(d.contract_id,2,5) 
+  
+
+
+where nullif (a.contract_id,'')  is null  and
+COALESCE(b.channel_type,c.channel_type,d.channel_type) ='SPP')
+select count(1) from tmp",P1,0,11
+dq_20612,Blank_contract_id,com_us_lake,bpri_salesordertransactions,doc_number,"with bpri_salesordertransactions as 
+
+
+(select * from com_us_lake.bpri_salesordertransactions) ,
+BPRI_BillingExtract as 
+(select * from com_us_lake.BPRI_BillingExtract
+ where to_date(BPRI_BillingExtract.billing_doc__date,'dd/MM/yyyy') > trunc(add_months(current_date,-48),'mm')),
+
+ tmp as(
+
+SELECT   
+case when  instr(comments,'^') > 0 then
+regexp_extract(comments,'^([^\^]+)\.?',1) else comments end  as group_id  ,
+ to_date(bpri_salesordertransactions.doc_date,'yyyyMMdd') doc_date,p.prd_prod_key,to_date(BPRI_BillingExtract.billing_doc__date,'MM/dd/yyyy')  GL_DATE
+FROM BPRI_BillingExtract BPRI_BillingExtract
+INNER JOIN bpri_salesordertransactions
+
+         ON (
+         regexp_replace(bpri_salesordertransactions.doc_number,'^0+(?!$)','') = regexp_replace(BPRI_BillingExtract.Sales_document,'^0+(?!$)','') 
+         AND regexp_replace(bpri_salesordertransactions.s_ord_item,'^0+(?!$)','') =  regexp_replace(BPRI_BillingExtract.Sales_doc_Item,'^0+(?!$)','')
+             )          
+          INNER JOIN
+com_us_lake.bpri_materialmasterdata
+          ON (    
+bpri_salesordertransactions.material=bpri_materialmasterdata.material
+                     AND bpri_materialmasterdata.logsys in('PRDCLNT100')
+		    AND bpri_materialmasterdata.MATL_TYPE in ('FINI','TRAD')
+            ) 
+       
+        
+         inner JOIN
+        com_us_hub.ref_prd_prod p
+        ON(regexp_replace(bpri_materialmasterdata.material,'^0+(?!$)','') = regexp_replace(p.prod_id,'^0+(?!$)','')) 
+        
+        
+                  where 
+    to_date(BPRI_BillingExtract.billing_doc__date,'dd/MM/yyyy') > trunc(add_months(current_date,-48),'mm')  and                
+bpri_salesordertransactions.billtoprty <>'0000336234' 
+and (bpri_salesordertransactions.REASON_REJ is null or bpri_salesordertransactions.REASON_REJ = '')
+AND bpri_salesordertransactions.doc_type IN ('ZXOA','ZXDR','ZXCR','ZXOE','ZXOR')
+AND (bpri_salesordertransactions.STORNO  <> 'R' or bpri_salesordertransactions.STORNO is null or bpri_salesordertransactions.STORNO = '')
+AND bpri_salesordertransactions.comp_code  in ('3390','3311','3312')
+        -- and Coalesce(lkp.contract_id, lkp2.contract_id)  is  null
+  group by       
+    case when  instr(comments,'^') > 0 then
+regexp_extract(comments,'^([^\^]+)\.?',1) else comments end     ,
+
+ to_date(bpri_salesordertransactions.doc_date,'yyyyMMdd') ,p.prd_prod_key,BPRI_BillingExtract.billing_doc__date       
+       union 
+       
+       
+       (SELECT 
+ 
+  	
+case when  instr(comments,'^') > 0 then
+regexp_extract(comments,'^([^\^]+)\.?',1) else comments end   grp_id,
+
+ to_date(bpri_salesordertransactions.doc_date,'yyyyMMdd') doc_date,p.prd_prod_key,CURRENT_DATE GL_DATE
+
+
+
+FROM BPRI_BillingExtract BPRI_BillingExtract
+INNER JOIN bpri_salesordertransactions
+
+         ON (
+         regexp_replace(bpri_salesordertransactions.doc_number,'^0+(?!$)','') = regexp_replace(BPRI_BillingExtract.Sales_document,'^0+(?!$)','') 
+         AND regexp_replace(bpri_salesordertransactions.s_ord_item,'^0+(?!$)','') =  regexp_replace(BPRI_BillingExtract.Sales_doc_Item,'^0+(?!$)','')
+             )          
+          INNER JOIN
+com_us_lake.bpri_materialmasterdata
+          ON (    
+bpri_salesordertransactions.material=bpri_materialmasterdata.material
+                     AND bpri_materialmasterdata.logsys in('PRDCLNT100')
+		    AND bpri_materialmasterdata.MATL_TYPE in ('FINI','TRAD')
+            ) 
+            left join
+     (select sap_cust_number,channel_type  from   com_us_lake.udef_na_hierarchy  ) 
+         on sap_cust_number=trim(LEADING '0' FROM BPRI_BillingExtract.Sold_to_party)   
+         
+   		   INNER JOIN 
+com_us_lake.bpri_customermasterdata
+   on bpri_salesordertransactions.sold_to=bpri_customermasterdata.customer
+AND bpri_customermasterdata.logsys in('PRDCLNT100')
+
+               inner JOIN
+        com_us_hub.ref_prd_prod p
+        ON(regexp_replace(bpri_materialmasterdata.material,'^0+(?!$)','') = regexp_replace(p.prod_id,'^0+(?!$)','')) 
+
+
+  where  
+    bpri_salesordertransactions.billtoprty <>'0000336234' 
+  AND bpri_salesordertransactions.doc_type IN ('ZXOA','ZXDR','ZXCR','ZXOE','ZXOR')
+  and (bpri_salesordertransactions.STORNO  <> 'R' or bpri_salesordertransactions.STORNO is null)
+	AND bpri_salesordertransactions.comp_code  in ('3390','3311','3312')
+
+and channel_type='SPP'
+
+group by
+case when  instr(comments,'^') > 0 then
+regexp_extract(comments,'^([^\^]+)\.?',1) else comments end  ,
+
+ to_date(bpri_salesordertransactions.doc_date,'yyyyMMdd') ,p.prd_prod_key,CURRENT_DATE 
+
+  )
+         
+        )
+          select count(1 )   from tmp 
+          
+          left join 
+(select contract_id,master_eff_date,master_end_date,prod_key,contract_price_group_id from  com_us_hub.ref_cntrct_prcing   where aud_row_stat_ind='0'  group by  contract_id,master_eff_date,master_end_date,prod_key,contract_price_group_id ) lkp
+    on  group_id   =lkp.contract_price_group_id
+and  lkp.prod_key=tmp.prd_prod_key 
+and tmp.doc_date=lkp.master_end_date 
+and tmp.doc_date =lkp.master_end_date
+
+ left join 
+  (select contract_id,erp_cust_num,master_eff_date,master_end_date,prod_key,contract_price_group_id from  com_us_hub.ref_cntrct_prcing     where (aud_row_stat_ind='0' and distribution_method in ('DIR','BOTH')) group by contract_id,erp_cust_num,master_eff_date,master_end_date,prod_key,contract_price_group_id ) lkp2
+     on  group_id   =lkp.contract_price_group_id
+and  lkp2.prod_key=tmp.prd_prod_key 
+and tmp.doc_date=lkp2.master_end_date 
+and tmp.doc_date =lkp2.master_end_date
+
+ where Coalesce(lkp.contract_id, lkp2.contract_id) is   null
+ ",P1,0,12
+dq_20711,date_missing,com_us_lake,dagg_cdit_redist,row_id,"with  dagg_cdit_redist as
+(select gl_date from 
+com_us_lake.dagg_cdit_redist a where    aud_row_stat_ind='0' and     ( gl_date between  (to_Date(add_months(trunc(current_date, 'MM') , -48),'MM/DD/YYYY')) and  date_add(to_Date(trunc(current_date, 'MM') ,'MM/DD/YYYY'),-1)) and dayofweek(gl_date)  not  in(1,7) group by  gl_date
+--union select prescriber_id,ship_to_org_id ,source,contract_id, parent_customer FROM com_us_lake.cnp_bd_cbk_sls  WHERE  aud_row_stat_ind='0'
+),
+
+ tmp (
+select (select   count(distinct actual_date)  from com_us_hub.ref_cal 
+where   ( actual_date between  (to_Date(add_months(trunc(current_date, 'MM') , -48),'MM/DD/YYYY')) and  date_add(to_Date(trunc(current_date, 'MM') ,'MM/DD/YYYY'),-1)) and dayofweek(actual_date)  not in(1,7) )-
+(select count(gl_date) from dagg_cdit_redist )
+)
+select * from  tmp",P1,0,13
+dq_20712,date_missing,com_us_lake,bpri_salesordertransactions,row_id,"with bpri_salesordertransactions as 
+
+
+(select * from com_us_lake.bpri_salesordertransactions) ,
+BPRI_BillingExtract as 
+(select * from com_us_lake.BPRI_BillingExtract
+ where to_date(BPRI_BillingExtract.billing_doc__date,'dd/MM/yyyy') > trunc(add_months(current_date,-48),'mm')),
+
+ tmp as(
+
+SELECT  BPRI_BillingExtract.billing_doc__date  GL_DATE
+FROM BPRI_BillingExtract BPRI_BillingExtract
+INNER JOIN bpri_salesordertransactions
+
+         ON (
+         regexp_replace(bpri_salesordertransactions.doc_number,'^0+(?!$)','') = regexp_replace(BPRI_BillingExtract.Sales_document,'^0+(?!$)','') 
+         AND regexp_replace(bpri_salesordertransactions.s_ord_item,'^0+(?!$)','') =  regexp_replace(BPRI_BillingExtract.Sales_doc_Item,'^0+(?!$)','')
+             )          
+          INNER JOIN
+com_us_lake.bpri_materialmasterdata
+          ON (    
+bpri_salesordertransactions.material=bpri_materialmasterdata.material
+                     AND bpri_materialmasterdata.logsys in('PRDCLNT100')
+		    AND bpri_materialmasterdata.MATL_TYPE in ('FINI','TRAD')
+            ) 
+       
+        
+         inner JOIN
+        com_us_hub.ref_prd_prod p
+        ON(regexp_replace(bpri_materialmasterdata.material,'^0+(?!$)','') = regexp_replace(p.prod_id,'^0+(?!$)','')) 
+        
+        
+
+         -- where channel_type='SPP'
+                  where 
+    to_date(BPRI_BillingExtract.billing_doc__date,'dd/MM/yyyy') > trunc(add_months(current_date,-48),'mm')  and                
+bpri_salesordertransactions.billtoprty <>'0000336234' 
+and (bpri_salesordertransactions.REASON_REJ is null or bpri_salesordertransactions.REASON_REJ = '')
+AND bpri_salesordertransactions.doc_type IN ('ZXOA','ZXDR','ZXCR','ZXOE','ZXOR')
+AND (bpri_salesordertransactions.STORNO  <> 'R' or bpri_salesordertransactions.STORNO is null or bpri_salesordertransactions.STORNO = '')
+AND bpri_salesordertransactions.comp_code  in ('3390','3311','3312')
+        -- and Coalesce(lkp.contract_id, lkp2.contract_id)  is  null
+  group by       
+   BPRI_BillingExtract.billing_doc__date       
+        
+       
+       
+      
+         
+        )
+        
+
+select (select   count(distinct actual_date)  from com_us_hub.ref_cal 
+where   ( actual_date between  (to_Date(add_months(trunc(current_date, 'MM') , -48),'MM/DD/YYYY')) and  date_add(to_Date(trunc(current_date, 'MM') ,'MM/DD/YYYY'),-1)) and dayofweek(actual_date)  not in(1,7) ) -
+--(select count(gl_date) from tmp )
+
+(select count( gl_date)  from tmp
+where   ( to_date(gl_date,'dd/MM/yyyy')  between  (to_Date(add_months(trunc(current_date, 'MM') , -48),'dd/MM/yyyy')) and  date_add(to_Date(trunc(current_date, 'MM') ,'MM/DD/YYYY'),-1)) and dayofweek(to_date(gl_date,'dd/MM/yyyy') )  not  in(1,7)
+)",P1,0,14
+final_check,final_check,corp_us_lake,generalledger_lineitems_takeda,"LOGSYS,COMP_CODE,CHRT_ACCTS,GL_ACCOUNT,FISCVARNT,FISCPER,AC_DOC_NO,ITEM_NUM"," select case when metric > threshold then 1 else 0 end as res from Corp_us_lake.dq_output_table
+ where entity_id in ('dq_20111','dq_20112','dq_20211','dq_20212','dq_20311','dq_20312','dq_20411','dq_20412','dq_20511','dq_20512','dq_20611','dq_20612','dq_20711','dq_20712')",P1,0,15
